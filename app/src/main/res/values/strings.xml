@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Mafia</string>
+    <string name="create_serv">open server</string>
+    <string name="connect_to_serv">finde server</string>
+    <string name="yourn">your name</string>
+    <string name="servn">server name</string>
+    <string name="ok">ok</string>
+    <string name="cansel">cansel</string>
+    <string name="name">name</string>
+    <string name="join">join!</string>
+    <string name="players">players</string>
+    <string name="entername">enter name please!</string>
+    <string name="namemast">name must be shorter than 20 characters!</string>
+    <string name="serventername">enter server name please!</string>
+    <string name="servnamemast">server name must be shorter than 20 characters!</string>
+    <string name="nowifi">connect to wifi please!</string>
+    <string name="back">back</string>
+    <string name="servers">found servers:</string>
+</resources>
