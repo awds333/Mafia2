@@ -38,7 +38,7 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
                         if (servname.length() <= 20) {
                             Intent intent = new Intent(context, WaitingForPlayersActivity.class);
                             intent.putExtra("name", name);
-                            intent.putExtra("servname", servname);
+                            intent.putExtra("servername", servname);
                             context.startActivity(intent);
                             context.finish();
                         } else

@@ -56,7 +56,7 @@ public class ServerSerchActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_serch);
-        wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         if (!isApOn()) {
             ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -128,8 +128,8 @@ public class ServerSerchActivity extends Activity {
                     try {
                         JSONObject serverInfo = new JSONObject(reader.readLine());
                         int people = serverInfo.getInt("peoplecount");
-                        String servename = serverInfo.getString("servername");
-                        Message msg = adViewHandler.obtainMessage(ip, people, 0, servename);
+                        String servername = serverInfo.getString("servername");
+                        Message msg = adViewHandler.obtainMessage(ip, people, 0, servername);
                         adViewHandler.obtainMessage();
                         adViewHandler.sendMessage(msg);
                         out.close();
