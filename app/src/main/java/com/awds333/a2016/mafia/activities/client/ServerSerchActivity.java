@@ -10,10 +10,14 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.awds333.a2016.mafia.R;
 import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
+import com.awds333.a2016.mafia.myviews.ServerListElementView;
 import com.awds333.a2016.mafia.netclasses.IpPinger;
 import com.awds333.a2016.mafia.netclasses.PortsNumber;
 
@@ -42,9 +46,11 @@ public class ServerSerchActivity extends Activity {
     ProgressBar progressBar;
     Activity context;
     ArrayList<Integer> liveIp;
+    ArrayList<ServerListElementView> serverElements;
     Runnable runnable;
     String ipTail;
-    String servename;
+    LinearLayout listView;
+    LinearLayout.LayoutParams layoutParams;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,8 +119,9 @@ public class ServerSerchActivity extends Activity {
                     try {
                         JSONObject serverInfo = new JSONObject(reader.readLine());
                         int people = serverInfo.getInt("peoplecount");
-                        servename = serverInfo.getString("servername");
-                        Message msg = adViewHandler.obtainMessage(ip, people, 0);
+                        String servename = serverInfo.getString("servername");
+                        Message msg = adViewHandler.obtainMessage(ip, people, 0, servename);
+                        adViewHandler.obtainMessage();
                         adViewHandler.sendMessage(msg);
                         out.close();
                         reader.close();
@@ -136,9 +143,20 @@ public class ServerSerchActivity extends Activity {
         adViewHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
+                ServerListElementView servEl = new ServerListElementView(context, msg.what, msg.arg1, (String) msg.obj);
+                serverElements.add(servEl);
+                listView.addView(servEl.getView(),layoutParams);
+                servEl.getView().setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
 
+                    }
+                });
             }
         };
+        layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        serverElements = new ArrayList<ServerListElementView>();
+        listView = (LinearLayout) findViewById(R.id.serverlist);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         liveIp = new ArrayList<>();
         context = this;
