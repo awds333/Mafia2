@@ -96,6 +96,8 @@ public class ServerSerchActivity extends Activity {
                 int ip = liveIp.get(0);
                 liveIp.remove(0);
                 Socket socket = new Socket();
+                PrintWriter out = null;
+                BufferedReader reader = null;
                 try {
                     socket.connect(new InetSocketAddress(ipTail + ip, PortsNumber.SERVER_GUEST_PORT), 4000);
                     while (socket.isConnected() == false) {
@@ -105,8 +107,8 @@ public class ServerSerchActivity extends Activity {
                             e.printStackTrace();
                         }
                     }
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    PrintWriter out = new PrintWriter(new BufferedWriter(
+                    reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    out = new PrintWriter(new BufferedWriter(
                             new OutputStreamWriter(socket.getOutputStream())),
                             true);
                     JSONObject outmessage = new JSONObject();
@@ -131,6 +133,14 @@ public class ServerSerchActivity extends Activity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
+                    if (out != null)
+                        out.close();
+                    if (reader != null)
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     if (socket != null)
                         try {
                             socket.close();
@@ -145,7 +155,7 @@ public class ServerSerchActivity extends Activity {
             public void handleMessage(Message msg) {
                 ServerListElementView servEl = new ServerListElementView(context, msg.what, msg.arg1, (String) msg.obj);
                 serverElements.add(servEl);
-                listView.addView(servEl.getView(),layoutParams);
+                listView.addView(servEl.getView(), layoutParams);
                 servEl.getView().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
