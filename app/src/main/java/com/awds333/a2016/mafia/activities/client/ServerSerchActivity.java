@@ -71,6 +71,13 @@ public class ServerSerchActivity extends Activity {
     }
 
     @Override
+    protected void onDestroy() {
+        if(pinger!= null)
+            pinger.stop();
+        super.onDestroy();
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Intent intent = new Intent(this, ServerSerchActivity.class);
         intent.putExtra("name", getIntent().getStringExtra("name"));

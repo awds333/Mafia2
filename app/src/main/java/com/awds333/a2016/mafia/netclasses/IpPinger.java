@@ -13,6 +13,7 @@ public class IpPinger {
     private Handler mhandler;
     private int ping;
     private int count;
+    private boolean run;
 
     public IpPinger(int treadCount, int[] myIp,Handler handler, int pingTyme) {
         myIpc = myIp[3];
@@ -20,12 +21,15 @@ public class IpPinger {
         this.mhandler = handler;
         ping = pingTyme;
         count = 1;
+        run = true;
         threads = new Thread[treadCount];
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                if (count == myIpc)
-                    count++;
+                if (run){
+
+                    if (count == myIpc)
+                        count++;
                 int lcount = count;
                 count++;
                 if (lcount <= 255) {
@@ -41,12 +45,25 @@ public class IpPinger {
                     }
                     mhandler.sendEmptyMessage(0);
                     run();
-                }
+                } else run = false;
+            }
             }
         };
         for (Thread startThread : threads) {
             startThread = new Thread(runnable);
             startThread.start();
+        }
+    }
+    public void stop(){
+        if (run) {
+            run = false;
+            for (Thread t : threads) {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
