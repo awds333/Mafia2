@@ -63,6 +63,11 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     protected void onDestroy() {
         wait = false;
         try {
+            guestSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
             guestThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -95,6 +100,8 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         anser.put("peoplecount", peoplecount);
                         anser.put("servername", servername);
                         out.println(anser.toString());
+                    } else {
+
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

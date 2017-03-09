@@ -163,7 +163,7 @@ public class ServerSerchActivity extends Activity {
                 ServerListElementView servEl = new ServerListElementView(context, msg.what, msg.arg1, (String) msg.obj);
                 serverElements.add(servEl);
                 listView.addView(servEl.getView(), layoutParams);
-                servEl.getView().setOnClickListener(new View.OnClickListener() {
+                servEl.getView().findViewById(R.id.join).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
 
