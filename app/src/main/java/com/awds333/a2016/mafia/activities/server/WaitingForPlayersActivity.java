@@ -90,6 +90,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 try {
                     guestSocket = new ServerSocket(PortsNumber.SERVER_GUEST_PORT);
                     socket = guestSocket.accept();
+                    guestSocket.close();
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     out = new PrintWriter(new BufferedWriter(
                             new OutputStreamWriter(socket.getOutputStream())),
