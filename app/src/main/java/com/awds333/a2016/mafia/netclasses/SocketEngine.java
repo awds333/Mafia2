@@ -25,7 +25,7 @@ public class SocketEngine extends Observable {
         channelId = 0;
     }
 
-    public SocketEngine getSocketEngine() {
+    public static SocketEngine getSocketEngine() {
         if (socketEngine == null)
             socketEngine = new SocketEngine();
         return socketEngine;
