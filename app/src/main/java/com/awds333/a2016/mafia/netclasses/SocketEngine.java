@@ -51,18 +51,18 @@ public class SocketEngine extends Observable {
                             try {
                                 String name = channel.getMessage();
                                 JSONObject newInfo = new JSONObject();
-                                newInfo.put("type","newChannel");
-                                newInfo.put("name",name);
-                                newInfo.put("port",channel.getPort());
-                                newInfo.put("id",channel.getId());
+                                newInfo.put("type", "newChannel");
+                                newInfo.put("name", name);
+                                newInfo.put("port", channel.getPort());
+                                newInfo.put("id", channel.getId());
                                 socketEngine.setChanged();
                                 notifyObservers(newInfo);
                                 while (true) {
                                     String message = channel.getMessage();
                                     JSONObject object = new JSONObject();
-                                    object.put("type","message");
-                                    object.put("id",channel.getId());
-                                    object.put("message",message);
+                                    object.put("type", "message");
+                                    object.put("id", channel.getId());
+                                    object.put("message", message);
                                     socketEngine.setChanged();
                                     notifyObservers(object);
                                 }
@@ -73,8 +73,8 @@ public class SocketEngine extends Observable {
                             }
                             JSONObject lostConnection = new JSONObject();
                             try {
-                                lostConnection.put("type","connectionfail");
-                                lostConnection.put("id",channel.getId());
+                                lostConnection.put("type", "connectionfail");
+                                lostConnection.put("id", channel.getId());
                                 socketEngine.setChanged();
                                 notifyObservers(lostConnection);
                             } catch (JSONException e) {
@@ -95,11 +95,11 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
-    public void closeServerSockets(){
+    public void closeServerSockets() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                for (ServerSocket serverSocket: serverSockets){
+                for (ServerSocket serverSocket : serverSockets) {
                     try {
                         serverSocket.close();
                     } catch (IOException e) {
@@ -112,14 +112,14 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
-    public void killChannelById(int id){
+    public void killChannelById(int id) {
         killId = id;
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int id = killId;
-                for(PlayerChannel channel: channels){
-                    if(channel.getId()==id) {
+                for (PlayerChannel channel : channels) {
+                    if (channel.getId() == id) {
                         channel.close();
                         channels.remove(channel);
                         break;
@@ -130,13 +130,13 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
-    public void sendMessage(String message){
+    public void sendMessage(String message) {
         mmessage = message;
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 String mes = mmessage;
-                for (PlayerChannel channel : channels){
+                for (PlayerChannel channel : channels) {
                     channel.sendMessage(mes);
                 }
             }
@@ -144,12 +144,12 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
-    public void finish(){
+    public void finish() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 closeServerSockets();
-                for (PlayerChannel channel : channels){
+                for (PlayerChannel channel : channels) {
                     channel.close();
                 }
                 channels = null;
