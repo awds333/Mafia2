@@ -15,11 +15,14 @@ public class PlayerChannel {
     private BufferedReader reader;
     private String state;
     private int id;
+    private int port;
 
-    public PlayerChannel(Thread thread, Socket socket, int id) {
+    public PlayerChannel(Thread thread, Socket socket, int id, int port) {
         this.thread = thread;
         this.socket = socket;
         this.id = id;
+        this.port = port;
+
         try {
             reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
             out = new PrintWriter(new BufferedWriter(
@@ -67,6 +70,10 @@ public class PlayerChannel {
 
     public int getId() {
         return id;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public String getState() {
