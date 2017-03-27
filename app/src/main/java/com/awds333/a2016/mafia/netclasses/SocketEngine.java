@@ -101,6 +101,7 @@ public class SocketEngine extends Observable {
             public void run() {
                 for (ServerSocket serverSocket : serverSockets) {
                     try {
+                        if(serverSocket!=null)
                         serverSocket.close();
                     } catch (IOException e) {
                         e.printStackTrace();

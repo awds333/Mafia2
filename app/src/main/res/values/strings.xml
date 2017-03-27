@@ -17,4 +17,7 @@
     <string name="back">back</string>
     <string name="servers">found servers:</string>
     <string name="start">start</string>
+    <string name="connecting">connecting</string>
+    <string name="cooner">connection error!</string>
+    <string name="gamews">game was all reade stared</string>
 </resources>

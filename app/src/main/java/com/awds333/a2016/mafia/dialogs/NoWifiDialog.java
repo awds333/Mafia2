@@ -2,9 +2,8 @@ package com.awds333.a2016.mafia.dialogs;
 
 import android.app.DialogFragment;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Settings;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +13,7 @@ import com.awds333.a2016.mafia.R;
 
 public class NoWifiDialog extends DialogFragment implements View.OnClickListener {
 
+    private Handler listener;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View dialog = inflater.inflate(R.layout.nowifi_dialog,null);
@@ -21,14 +21,18 @@ public class NoWifiDialog extends DialogFragment implements View.OnClickListener
         return dialog;
     }
 
+    public void setListener(Handler handler){
+        listener = handler;
+    }
+
     @Override
     public void onClick(View v) {
         dismiss();
-        startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS),1);
+        listener.sendEmptyMessage(1);
     }
 
     @Override
     public void onCancel(DialogInterface dialog) {
-        startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS),1);
+        listener.sendEmptyMessage(1);
     }
 }

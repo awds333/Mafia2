@@ -8,6 +8,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +18,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.awds333.a2016.mafia.R;
-import com.awds333.a2016.mafia.activities.client.ServerSerchActivity;
 import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
 import com.awds333.a2016.mafia.netclasses.PortsNumber;
 import com.awds333.a2016.mafia.netclasses.SocketEngine;
@@ -50,10 +52,12 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     SocketEngine engine;
     int port;
     boolean next;
+    Object argj;
+
     LinearLayout conteiner;
     LinearLayout.LayoutParams layoutParams;
-    HashMap<Integer,String> idName;
-    HashMap<Integer,Integer> idPort;
+    HashMap<Integer, String> idName;
+    HashMap<Integer, Integer> idPort;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +73,13 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 startWaiting();
             } else {
                 DialogFragment noWifiDialog = new NoWifiDialog();
+                Handler lisener = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                    }
+                };
+                ((NoWifiDialog) noWifiDialog).setListener(lisener);
                 noWifiDialog.show(getFragmentManager(), "mytag");
             }
         } else startWaiting();
@@ -76,20 +87,26 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
 
     @Override
     protected void onDestroy() {
-        if(next== false) {
+        if (next == false) {
             engine.deleteObserver(this);
-            wait = false;
-            try {
-                guestSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                guestThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            engine.finish();
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    wait = false;
+                    try {
+                        guestSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        guestThread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    engine.finish();
+                }
+            });
+            thread.start();
         }
         super.onDestroy();
     }
@@ -130,6 +147,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                     } else {
                         out.println(port);
                         engine.addChannel(port);
+                        port++;
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -166,10 +184,11 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Intent intent = new Intent(this, ServerSerchActivity.class);
+        Intent intent = new Intent(this, WaitingForPlayersActivity.class);
         intent.putExtra("name", getIntent().getStringExtra("name"));
         intent.putExtra("servname", getIntent().getStringExtra("servname"));
         startActivity(intent);
+        finish();
     }
 
     public boolean isApOn() {
@@ -184,32 +203,38 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        JSONObject object = (JSONObject) arg;
-        try {
-            String type = object.getString("type");
-            if(type.equals("newChannel")){
-                View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
-                ((TextView)view.findViewById(R.id.name)).setText(object.getString("name"));
-                view.setId(object.getInt("id"));
-                conteiner.addView(view,layoutParams);
-                idPort.put(object.getInt("id"),object.getInt("port"));
-                idName.put(object.getInt("id"),object.getString("name"));
-                JSONObject message = new JSONObject();
-                message.put("type", "newPlayer");
-                message.put("name", object.getString("name"));
-                message.put("id",object.getInt("id"));
-                engine.sendMessage(message.toString());
-            } else if(type.equals("message")){
+        argj = arg;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                JSONObject object = (JSONObject) argj;
+                try {
+                    String type = object.getString("type");
+                    if (type.equals("newChannel")) {
+                        View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
+                        ((TextView) view.findViewById(R.id.name)).setText(object.getString("name"));
+                        view.setId(object.getInt("id"));
+                        conteiner.addView(view, layoutParams);
+                        idPort.put(object.getInt("id"), object.getInt("port"));
+                        idName.put(object.getInt("id"), object.getString("name"));
+                        JSONObject message = new JSONObject();
+                        message.put("type", "newPlayer");
+                        message.put("name", object.getString("name"));
+                        message.put("id", object.getInt("id"));
+                        engine.sendMessage(message.toString());
+                    } else if (type.equals("message")) {
 
-            } else if(type.equals("connectionfail")){
-                engine.killChannelById(object.getInt("id"));
-                engine.sendMessage(object.toString());
-                conteiner.removeView(conteiner.findViewById(object.getInt("id")));
-                idName.remove(object.getInt("id"));
-                idPort.remove(object.getInt("id"));
+                    } else if (type.equals("connectionfail")) {
+                        engine.killChannelById(object.getInt("id"));
+                        engine.sendMessage(object.toString());
+                        conteiner.removeView(conteiner.findViewById(object.getInt("id")));
+                        idName.remove(object.getInt("id"));
+                        idPort.remove(object.getInt("id"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        });
     }
 }

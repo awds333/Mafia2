@@ -1,5 +1,6 @@
 package com.awds333.a2016.mafia.netclasses;
 
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -8,20 +9,29 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class PlayerChannel {
-    private Thread thread;
+public class SocketForPlayer {
+
+    private static SocketForPlayer player;
+
     private Socket socket;
-    private PrintWriter out;
     private BufferedReader reader;
-    private int id;
-    private int port;
+    private PrintWriter out;
 
-    public PlayerChannel(Thread thread, Socket socket, int id, int port) {
-        this.thread = thread;
+    private SocketForPlayer() {
+    }
+
+    public static SocketForPlayer getSocketForPlayer() {
+        if (player == null)
+            player = new SocketForPlayer();
+        return player;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
         this.socket = socket;
-        this.id = id;
-        this.port = port;
-
         try {
             reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
             out = new PrintWriter(new BufferedWriter(
@@ -32,12 +42,12 @@ public class PlayerChannel {
         }
     }
 
-    public void sendMessage(String message) {
-        out.println(message);
-    }
-
     public String getMessage() throws IOException {
         return reader.readLine();
+    }
+
+    public void sendMessage(String message) {
+        out.println(message);
     }
 
     public void close() {
@@ -58,20 +68,5 @@ public class PlayerChannel {
                 e.printStackTrace();
             }
         }
-        if (thread != null) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public int getPort() {
-        return port;
     }
 }

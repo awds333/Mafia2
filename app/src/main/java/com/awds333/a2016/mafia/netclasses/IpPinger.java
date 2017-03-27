@@ -15,7 +15,7 @@ public class IpPinger {
     private int count;
     private boolean run;
 
-    public IpPinger(int treadCount, int[] myIp,Handler handler, int pingTyme) {
+    public IpPinger(int treadCount, int[] myIp, Handler handler, int pingTyme) {
         myIpc = myIp[3];
         ip = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
         this.mhandler = handler;
@@ -26,27 +26,27 @@ public class IpPinger {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                if (run){
+                if (run) {
 
                     if (count == myIpc)
                         count++;
-                int lcount = count;
-                count++;
-                if (lcount <= 255) {
-                    try {
-                        InetAddress address = InetAddress.getByName(ip + lcount);
-                        if (address.isReachable(ping)) {
-                            mhandler.sendEmptyMessage(lcount);
+                    int lcount = count;
+                    count++;
+                    if (lcount <= 255) {
+                        try {
+                            InetAddress address = InetAddress.getByName(ip + lcount);
+                            if (address.isReachable(ping)) {
+                                if(run)mhandler.sendEmptyMessage(lcount);
+                            }
+                        } catch (UnknownHostException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (UnknownHostException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    mhandler.sendEmptyMessage(0);
-                    run();
-                } else run = false;
-            }
+                        if(run)mhandler.sendEmptyMessage(0);
+                        run();
+                    } else run = false;
+                }
             }
         };
         for (Thread startThread : threads) {
@@ -54,16 +54,10 @@ public class IpPinger {
             startThread.start();
         }
     }
-    public void stop(){
+
+    public void stop() {
         if (run) {
             run = false;
-            for (Thread t : threads) {
-                try {
-                    t.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 }
