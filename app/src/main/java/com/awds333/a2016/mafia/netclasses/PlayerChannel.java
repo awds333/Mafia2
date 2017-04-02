@@ -37,7 +37,10 @@ public class PlayerChannel {
     }
 
     public String getMessage() throws IOException {
-        return reader.readLine();
+        String message = reader.readLine();
+        if (message==null)
+            throw  new IOException();
+        return message;
     }
 
     public void close() {

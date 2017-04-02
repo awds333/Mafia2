@@ -1,5 +1,7 @@
 package com.awds333.a2016.mafia.netclasses;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,15 +16,13 @@ public class SocketEngine extends Observable {
     private static SocketEngine socketEngine;
     private ArrayList<PlayerChannel> channels;
     private ArrayList<ServerSocket> serverSockets;
-    private int mport;
-    private int channelId;
-    private int killId;
-    private String mmessage;
+    private int mport,channelId,killId,msId;
+    private String mmessage,mmessageId;
 
     private SocketEngine() {
         channels = new ArrayList<PlayerChannel>();
         serverSockets = new ArrayList<>();
-        channelId = 0;
+        channelId = 1;
     }
 
     public static SocketEngine getSocketEngine() {
@@ -55,6 +55,7 @@ public class SocketEngine extends Observable {
                                 newInfo.put("name", name);
                                 newInfo.put("port", channel.getPort());
                                 newInfo.put("id", channel.getId());
+                                Log.d("awdsawds","new id "+channel.getId());
                                 socketEngine.setChanged();
                                 notifyObservers(newInfo);
                                 while (true) {
@@ -63,6 +64,8 @@ public class SocketEngine extends Observable {
                                     object.put("type", "message");
                                     object.put("id", channel.getId());
                                     object.put("message", message);
+                                    Log.d("awdsawds","message id "+channel.getId());
+                                    Log.d("awdsawds",message);
                                     socketEngine.setChanged();
                                     notifyObservers(object);
                                 }
@@ -75,6 +78,7 @@ public class SocketEngine extends Observable {
                             try {
                                 lostConnection.put("type", "connectionfail");
                                 lostConnection.put("id", channel.getId());
+                                Log.d("awdsawds","di id "+channel.getId());
                                 socketEngine.setChanged();
                                 notifyObservers(lostConnection);
                             } catch (JSONException e) {
@@ -139,6 +143,25 @@ public class SocketEngine extends Observable {
                 String mes = mmessage;
                 for (PlayerChannel channel : channels) {
                     channel.sendMessage(mes);
+                }
+            }
+        });
+        thread.start();
+    }
+
+    public void sendMessageById(String message, int id){
+        mmessageId = message;
+        msId = id;
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String mes = mmessageId;
+                int id = msId;
+                for (PlayerChannel channel : channels) {
+                    if(channel.getId()==id) {
+                        channel.sendMessage(mes);
+                        break;
+                    }
                 }
             }
         });

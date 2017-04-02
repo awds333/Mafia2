@@ -1,6 +1,8 @@
 package com.awds333.a2016.mafia.netclasses;
 
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -51,6 +53,7 @@ public class SocketForPlayer {
     }
 
     public void close() {
+        Log.d("awdsawds","t");
         if (out != null) {
             out.close();
         }

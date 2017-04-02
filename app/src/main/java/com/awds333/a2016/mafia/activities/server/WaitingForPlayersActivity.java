@@ -22,6 +22,7 @@ import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
 import com.awds333.a2016.mafia.netclasses.PortsNumber;
 import com.awds333.a2016.mafia.netclasses.SocketEngine;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,6 +36,7 @@ import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -114,13 +116,18 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     private void startWaiting() {
         idName = new HashMap<Integer, String>();
         idPort = new HashMap<Integer, Integer>();
+        idName.put(0,getIntent().getStringExtra("name"));
         next = false;
+        context = this;
         conteiner = (LinearLayout) findViewById(R.id.conteiner);
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
+        view.setId(0);
+        ((TextView) view.findViewById(R.id.name)).setText(getIntent().getStringExtra("name"));
+        conteiner.addView(view,layoutParams);
         port = PortsNumber.SERVER_GUEST_PORT + 1;
         engine = SocketEngine.getSocketEngine();
         engine.addObserver(this);
-        context = this;
         wait = true;
         socket = null;
         guestSocket = null;
@@ -222,14 +229,33 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         message.put("name", object.getString("name"));
                         message.put("id", object.getInt("id"));
                         engine.sendMessage(message.toString());
+                        peoplecount++;
                     } else if (type.equals("message")) {
-
+                        JSONObject message = new JSONObject(object.getString("message"));
+                        if(message.getString("type").equals("getPlayList")){
+                            JSONObject answer = new JSONObject();
+                            JSONArray array = new JSONArray();
+                            Iterator<Integer> ids = idName.keySet().iterator();
+                            while (ids.hasNext()){
+                                JSONObject ob = new JSONObject();
+                                int idi = ids.next();
+                                ob.put("id",idi);
+                                ob.put("name",idName.get(idi));
+                                array.put(ob);
+                            }
+                            answer.put("PlayList",array);
+                            answer.put("type","PlayList");
+                            answer.put("id",object.getInt("id"));
+                            answer.put("name",idName.get(object.getInt("id")));
+                            engine.sendMessageById(answer.toString(),object.getInt("id"));
+                        }
                     } else if (type.equals("connectionfail")) {
                         engine.killChannelById(object.getInt("id"));
                         engine.sendMessage(object.toString());
                         conteiner.removeView(conteiner.findViewById(object.getInt("id")));
                         idName.remove(object.getInt("id"));
                         idPort.remove(object.getInt("id"));
+                        peoplecount--;
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
