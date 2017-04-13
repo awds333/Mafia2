@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
+import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -47,7 +48,7 @@ public class ServerSerchActivity extends Activity {
     WifiManager wifiManager;
     Handler handler, adViewHandler, connectingRezult;
     IpPinger pinger;
-    ProgressBar progressBar;
+    ProgressBar progressBar, scaning;
     Activity context;
     ArrayList<Integer> liveIp;
     ArrayList<ServerListElementView> serverElements;
@@ -58,6 +59,8 @@ public class ServerSerchActivity extends Activity {
     ProgressDialog dialog;
     int connectionIp;
     SocketForPlayer player;
+    ConnectivityManager connManager;
+    FloatingActionButton floatingButton;
     boolean next;
 
     @Override
@@ -66,10 +69,9 @@ public class ServerSerchActivity extends Activity {
         next = false;
         setContentView(R.layout.activity_server_serch);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (!isApOn()) {
-            ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
             if (mWifi.isConnected()) {
                 startScan();
             } else {
@@ -90,7 +92,7 @@ public class ServerSerchActivity extends Activity {
     protected void onDestroy() {
         if (pinger != null)
             pinger.stop();
-        if (!next&&player!=null){
+        if (!next && player != null) {
             player.close();
         }
         super.onDestroy();
@@ -105,11 +107,74 @@ public class ServerSerchActivity extends Activity {
     }
 
     private void startScan() {
+        scaning = (ProgressBar) findViewById(R.id.progressBar3);
+        floatingButton = (FloatingActionButton) findViewById(R.id.floatingButton);
+        floatingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                if (isApOn() || mWifi.isConnected()) {
+                    liveIp = new ArrayList<>();
+                    listView.removeAllViews();
+                    int[] myIp;
+                    if (isApOn()) {
+                        myIp = new int[]{192, 168, 43, 1};
+                    } else {
+                        String s = getMyIpAddress();
+                        myIp = new int[4];
+                        int count = 0;
+                        StringBuilder ipb = new StringBuilder();
+                        for (int i = 0; i < s.length(); i++) {
+                            if (s.charAt(i) == '.') {
+                                myIp[count] = Integer.parseInt(ipb.toString());
+                                ipb = new StringBuilder();
+                                count++;
+                            } else ipb.append(s.charAt(i));
+                        }
+                        myIp[count] = Integer.parseInt(ipb.toString());
+                    }
+                    ipTail = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
+                    pinger = new IpPinger(7, myIp, handler, 500);
+                    floatingButton.setClickable(false);
+                    floatingButton.setVisibility(View.INVISIBLE);
+                    scaning.setVisibility(View.VISIBLE);
+                    progressBar.setProgress(0);
+                } else {
+                    DialogFragment noWifiDialog = new NoWifiDialog();
+                    Handler lisener = new Handler() {
+                        @Override
+                        public void handleMessage(Message msg) {
+                            startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                        }
+                    };
+                    ((NoWifiDialog) noWifiDialog).setListener(lisener);
+                    noWifiDialog.show(getFragmentManager(), "mytag");
+                }
+            }
+        });
         handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
+
                 if (msg.what == 0) {
                     progressBar.setProgress(progressBar.getProgress() + 1);
+                    if (progressBar.getProgress() == 254) {
+                        floatingButton.setVisibility(View.VISIBLE);
+                        floatingButton.setClickable(true);
+                        scaning.setVisibility(View.INVISIBLE);
+                        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                        if (!isApOn() && !mWifi.isConnected()) {
+                            DialogFragment noWifiDialog = new NoWifiDialog();
+                            Handler lisener = new Handler() {
+                                @Override
+                                public void handleMessage(Message msg) {
+                                    startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                                }
+                            };
+                            ((NoWifiDialog) noWifiDialog).setListener(lisener);
+                            noWifiDialog.show(getFragmentManager(), "mytag");
+                        }
+                    }
                 } else {
                     liveIp.add(msg.what);
                     Thread thread = new Thread(runnable);
@@ -178,72 +243,32 @@ public class ServerSerchActivity extends Activity {
                 servEl.setOnClick(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        dialog = new ProgressDialog(context);
-                        dialog.setMessage(context.getString(R.string.connecting));
-                        dialog.setCancelable(false);
-                        dialog.show();
-                        connectionIp = v.getId();
-                        Thread thread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Socket socket = new Socket();
-                                PrintWriter out = null;
-                                BufferedReader reader = null;
-                                int port = -1;
-                                try {
-                                    socket.connect(new InetSocketAddress(ipTail + connectionIp, PortsNumber.SERVER_GUEST_PORT), 4000);
-                                    while (socket.isConnected() == false) {
-                                        try {
-                                            Thread.sleep(100);
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                    reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                    out = new PrintWriter(new BufferedWriter(
-                                            new OutputStreamWriter(socket.getOutputStream())),
-                                            true);
-                                    JSONObject outmessage = new JSONObject();
-                                    try {
-                                        outmessage.put("contyme", 2);
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                    out.println(outmessage.toString());
-                                    String sport = reader.readLine();
-                                    port = Integer.parseInt(sport);
-                                    out.close();
-                                    reader.close();
-                                    socket.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                } finally {
-                                    if (out != null)
-                                        out.close();
-                                    if (reader != null)
-                                        try {
-                                            reader.close();
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                    if (socket != null)
-                                        try {
-                                            socket.close();
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+                        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                        if (!isApOn() && !mWifi.isConnected()) {
+                            DialogFragment noWifiDialog = new NoWifiDialog();
+                            Handler lisener = new Handler() {
+                                @Override
+                                public void handleMessage(Message msg) {
+                                    startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
                                 }
-                                if (port == -2) {
-                                    connectingRezult.sendEmptyMessage(-2);
-                                } else if (port != -1) {
+                            };
+                            ((NoWifiDialog) noWifiDialog).setListener(lisener);
+                            noWifiDialog.show(getFragmentManager(), "mytag");
+                        } else {
+                            dialog = new ProgressDialog(context);
+                            dialog.setMessage(context.getString(R.string.connecting));
+                            dialog.setCancelable(false);
+                            dialog.show();
+                            connectionIp = v.getId();
+                            Thread thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Socket socket = new Socket();
+                                    PrintWriter out = null;
+                                    BufferedReader reader = null;
+                                    int port = -1;
                                     try {
-                                        Thread.sleep(500);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                    socket = new Socket();
-                                    try {
-                                        socket.connect(new InetSocketAddress(ipTail + connectionIp, port), 4000);
+                                        socket.connect(new InetSocketAddress(ipTail + connectionIp, PortsNumber.SERVER_GUEST_PORT), 4000);
                                         while (socket.isConnected() == false) {
                                             try {
                                                 Thread.sleep(100);
@@ -251,20 +276,73 @@ public class ServerSerchActivity extends Activity {
                                                 e.printStackTrace();
                                             }
                                         }
-                                        player = SocketForPlayer.getSocketForPlayer();
-                                        player.setSocket(socket);
-                                        player.sendMessage(name);
-                                        connectingRezult.sendEmptyMessage(port);
+                                        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                                        out = new PrintWriter(new BufferedWriter(
+                                                new OutputStreamWriter(socket.getOutputStream())),
+                                                true);
+                                        JSONObject outmessage = new JSONObject();
+                                        try {
+                                            outmessage.put("contyme", 2);
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                        out.println(outmessage.toString());
+                                        String sport = reader.readLine();
+                                        port = Integer.parseInt(sport);
+                                        out.close();
+                                        reader.close();
+                                        socket.close();
                                     } catch (IOException e) {
-                                        player.close();
+                                        e.printStackTrace();
+                                    } finally {
+                                        if (out != null)
+                                            out.close();
+                                        if (reader != null)
+                                            try {
+                                                reader.close();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        if (socket != null)
+                                            try {
+                                                socket.close();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                    }
+                                    if (port == -2) {
+                                        connectingRezult.sendEmptyMessage(-2);
+                                    } else if (port != -1) {
+                                        try {
+                                            Thread.sleep(500);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                        socket = new Socket();
+                                        try {
+                                            socket.connect(new InetSocketAddress(ipTail + connectionIp, port), 4000);
+                                            while (socket.isConnected() == false) {
+                                                try {
+                                                    Thread.sleep(100);
+                                                } catch (InterruptedException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                            player = SocketForPlayer.getSocketForPlayer();
+                                            player.setSocket(socket);
+                                            player.sendMessage(name);
+                                            connectingRezult.sendEmptyMessage(port);
+                                        } catch (IOException e) {
+                                            player.close();
+                                            connectingRezult.sendEmptyMessage(-1);
+                                        }
+                                    } else {
                                         connectingRezult.sendEmptyMessage(-1);
                                     }
-                                } else {
-                                    connectingRezult.sendEmptyMessage(-1);
                                 }
-                            }
-                        });
-                        thread.start();
+                            });
+                            thread.start();
+                        }
                     }
                 });
             }
@@ -275,12 +353,11 @@ public class ServerSerchActivity extends Activity {
                 dialog.dismiss();
                 if (msg.what == -1) {
                     Toast.makeText(context, getString(R.string.cooner), Toast.LENGTH_LONG).show();
-                }
-                if (msg.what == -2) {
+                } else if (msg.what == -2) {
                     Toast.makeText(context, getString(R.string.gamews), Toast.LENGTH_LONG).show();
                 } else {
                     next = true;
-                    Intent intent = new Intent(context,WaitingForGameStartActivity.class);
+                    Intent intent = new Intent(context, WaitingForGameStartActivity.class);
                     startActivity(intent);
                     finish();
                 }
@@ -290,9 +367,10 @@ public class ServerSerchActivity extends Activity {
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         serverElements = new ArrayList<ServerListElementView>();
         listView = (LinearLayout) findViewById(R.id.serverlist);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        liveIp = new ArrayList<>();
         context = this;
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setMax(255);
+        liveIp = new ArrayList<>();
         int[] myIp;
         if (isApOn()) {
             myIp = new int[]{192, 168, 43, 1};

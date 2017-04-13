@@ -43,7 +43,7 @@ public class IpPinger {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        if(run)mhandler.sendEmptyMessage(0);
+                        mhandler.sendEmptyMessage(0);
                         run();
                     } else run = false;
                 }
