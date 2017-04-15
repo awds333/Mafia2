@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Mafia</string>
     <string name="create_serv">open server</string>
-    <string name="connect_to_serv">finde server</string>
+    <string name="connect_to_serv">find server</string>
     <string name="yourn">your name</string>
     <string name="servn">server name</string>
     <string name="ok">ok</string>
@@ -20,4 +20,6 @@
     <string name="connecting">connecting</string>
     <string name="cooner">connection error!</string>
     <string name="gamews">game was all reade stared</string>
+    <string name="exit">exit</string>
+    <string name="areyou">are you sure?</string>
 </resources>

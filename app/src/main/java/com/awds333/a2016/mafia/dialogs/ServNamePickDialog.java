@@ -40,7 +40,7 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
                             intent.putExtra("name", name);
                             intent.putExtra("servername", servname);
                             context.startActivity(intent);
-                            context.finish();
+                            dismiss();
                         } else
                             Toast.makeText(context, context.getText(R.string.servnamemast), Toast.LENGTH_LONG).show();
                     } else

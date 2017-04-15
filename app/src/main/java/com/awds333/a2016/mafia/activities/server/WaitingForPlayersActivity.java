@@ -14,10 +14,12 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.awds333.a2016.mafia.R;
+import com.awds333.a2016.mafia.dialogs.ExitDialog;
 import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
 import com.awds333.a2016.mafia.netclasses.PortsNumber;
 import com.awds333.a2016.mafia.netclasses.SocketEngine;
@@ -119,6 +121,12 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         idName.put(0,getIntent().getStringExtra("name"));
         next = false;
         context = this;
+        ((Button)findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.onBackPressed();
+            }
+        });
         conteiner = (LinearLayout) findViewById(R.id.conteiner);
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
@@ -262,5 +270,11 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 }
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        DialogFragment exit = new ExitDialog();
+        exit.show(getFragmentManager(), "mytag");
     }
 }

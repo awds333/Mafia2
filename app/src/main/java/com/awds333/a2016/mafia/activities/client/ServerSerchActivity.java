@@ -15,11 +15,13 @@ import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.awds333.a2016.mafia.R;
+import com.awds333.a2016.mafia.dialogs.ExitDialog;
 import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
 import com.awds333.a2016.mafia.myviews.ServerListElementView;
 import com.awds333.a2016.mafia.netclasses.IpPinger;
@@ -107,6 +109,12 @@ public class ServerSerchActivity extends Activity {
     }
 
     private void startScan() {
+        ((Button)findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.onBackPressed();
+            }
+        });
         scaning = (ProgressBar) findViewById(R.id.progressBar3);
         floatingButton = (FloatingActionButton) findViewById(R.id.floatingButton);
         floatingButton.setOnClickListener(new View.OnClickListener() {
@@ -421,5 +429,11 @@ public class ServerSerchActivity extends Activity {
         } catch (SocketException ex) {
         }
         return null;
+    }
+
+    @Override
+    public void onBackPressed() {
+        DialogFragment exit = new ExitDialog();
+        exit.show(getFragmentManager(), "mytag");
     }
 }

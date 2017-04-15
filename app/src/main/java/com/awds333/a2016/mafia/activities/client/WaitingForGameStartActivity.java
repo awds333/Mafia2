@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import com.awds333.a2016.mafia.R;
 import com.awds333.a2016.mafia.activities.MainActivity;
 import com.awds333.a2016.mafia.dialogs.ConnectionErrorDialog;
+import com.awds333.a2016.mafia.dialogs.ExitDialog;
 import com.awds333.a2016.mafia.netclasses.SocketForPlayer;
 
 import org.json.JSONArray;
@@ -45,6 +47,12 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
         context = this;
         next = false;
         listen = true;
+        ((Button)findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.onBackPressed();
+            }
+        });
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -124,13 +132,13 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                     try {
                         JSONObject object = new JSONObject((String) msg.obj);
                         String type = object.getString("type");
-                        if(type.equals("newPlayer")){
-                            idName.put(object.getInt("id"),object.getString("name"));
+                        if (type.equals("newPlayer")) {
+                            idName.put(object.getInt("id"), object.getString("name"));
                             View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
                             view.setId(object.getInt("id"));
                             ((TextView) view.findViewById(R.id.name)).setText(object.getString("name"));
                             conteiner.addView(view, params);
-                        } else if (type.equals("connectionfail")){
+                        } else if (type.equals("connectionfail")) {
                             conteiner.removeView(conteiner.findViewById(object.getInt("id")));
                             idName.remove(object.getInt("id"));
                         }
@@ -153,5 +161,11 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
             player.close();
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        DialogFragment exit = new ExitDialog();
+        exit.show(getFragmentManager(), "mytag");
     }
 }

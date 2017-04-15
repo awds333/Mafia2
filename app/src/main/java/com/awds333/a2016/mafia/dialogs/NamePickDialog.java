@@ -36,7 +36,7 @@ public class NamePickDialog extends DialogFragment implements View.OnClickListen
                     Intent intent = new Intent(context, ServerSerchActivity.class);
                     intent.putExtra("name",s);
                     context.startActivity(intent);
-                    context.finish();
+                    dismiss();
                 } else
                     Toast.makeText(context, context.getText(R.string.namemast), Toast.LENGTH_LONG).show();
             } else

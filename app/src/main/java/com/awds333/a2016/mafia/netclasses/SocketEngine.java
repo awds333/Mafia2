@@ -103,14 +103,14 @@ public class SocketEngine extends Observable {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                for (ServerSocket serverSocket : serverSockets) {
+                while (serverSockets.size()>0) {
                     try {
-                        if(serverSocket!=null)
-                        serverSocket.close();
+                        if(serverSockets.get(0)!=null)
+                        serverSockets.get(0).close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    serverSockets.remove(serverSocket);
+                    serverSockets.remove(0);
                 }
             }
         });
