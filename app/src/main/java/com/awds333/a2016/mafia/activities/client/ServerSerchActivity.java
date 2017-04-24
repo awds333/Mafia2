@@ -360,9 +360,9 @@ public class ServerSerchActivity extends Activity {
             public void handleMessage(Message msg) {
                 dialog.dismiss();
                 if (msg.what == -1) {
-                    Toast.makeText(context, getString(R.string.cooner), Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, R.string.cooner, Toast.LENGTH_LONG).show();
                 } else if (msg.what == -2) {
-                    Toast.makeText(context, getString(R.string.gamews), Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, R.string.gamews, Toast.LENGTH_LONG).show();
                 } else {
                     next = true;
                     Intent intent = new Intent(context, WaitingForGameStartActivity.class);

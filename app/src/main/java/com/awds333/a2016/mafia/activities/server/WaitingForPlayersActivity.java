@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.awds333.a2016.mafia.R;
 import com.awds333.a2016.mafia.dialogs.ExitDialog;
@@ -125,6 +126,39 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
             @Override
             public void onClick(View v) {
                 context.onBackPressed();
+            }
+        });
+        ((Button)findViewById(R.id.start)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(peoplecount>=4){
+                    next = true;
+                    JSONObject object = new JSONObject();
+                    try {
+                        object.put("type","rolepick");
+                    } catch (JSONException e) {
+
+                    }
+                    engine.sendMessage(object.toString());
+                    JSONArray pref = new JSONArray();
+                    Iterator<Integer> ids =idName.keySet().iterator();
+                    while (ids.hasNext()){
+                        JSONObject playernp = new JSONObject();
+                        int id = ids.next();
+                        try {
+                            playernp.put("id",id);
+                            playernp.put("name",idName.get(id));
+                            playernp.put("port",idPort.get(id));
+                            pref.put(playernp);
+                        } catch (JSONException e) {
+                        }
+                    }
+                    Intent intent = new Intent(context,RolePickActivity.class);
+                    intent.putExtra("players",pref.toString());
+                    startActivity(intent);
+                    context.finish();
+                }
+                else Toast.makeText(context,R.string.needfor,Toast.LENGTH_LONG).show();
             }
         });
         conteiner = (LinearLayout) findViewById(R.id.conteiner);
@@ -255,6 +289,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                             answer.put("type","PlayList");
                             answer.put("id",object.getInt("id"));
                             answer.put("name",idName.get(object.getInt("id")));
+                            answer.put("type","fornew");
                             engine.sendMessageById(answer.toString(),object.getInt("id"));
                         }
                     } else if (type.equals("connectionfail")) {

@@ -70,8 +70,13 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                         player.sendMessage(object.toString());
                         try {
                             player.getMessage();
-                            String message = player.getMessage();
-                            JSONObject plList = new JSONObject(message);
+                            JSONObject plList = new JSONObject();
+                            while (true){
+                                String message = player.getMessage();
+                                plList = new JSONObject(message);
+                                if(plList.getString("type").equals("fornew"))
+                                    break;
+                            }
                             JSONArray array = plList.getJSONArray("PlayList");
                             mId = plList.getInt("id");
                             mName = plList.getString("name");

@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -14,16 +15,25 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.MainActivity">
+        <activity
+            android:name=".activities.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.client.ServerSerchActivity" />
-        <activity android:name=".activities.server.WaitingForPlayersActivity" />
-        <activity android:name=".activities.client.WaitingForGameStartActivity"></activity>
+        <activity
+            android:name=".activities.client.ServerSerchActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.server.WaitingForPlayersActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.client.WaitingForGameStartActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activities.server.RolePickActivity"></activity>
     </application>
 
 </manifest>
