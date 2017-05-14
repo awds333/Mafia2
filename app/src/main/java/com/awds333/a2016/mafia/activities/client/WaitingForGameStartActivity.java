@@ -2,6 +2,7 @@ package com.awds333.a2016.mafia.activities.client;
 
 import android.app.Activity;
 import android.app.DialogFragment;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,6 +40,7 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
     Activity context;
     SocketForPlayer player;
     boolean next, listen;
+    ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

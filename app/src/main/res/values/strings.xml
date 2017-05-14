@@ -23,4 +23,11 @@
     <string name="exit">exit</string>
     <string name="areyou">are you sure?</string>
     <string name="needfor">need 4 or more people</string>
+    <string name="roles">roles</string>
+    <string name="innocents">innocents</string>
+    <string name="detective">detective</string>
+    <string name="doctorandbar">doctor and barman</string>
+    <string name="defaul">default</string>
+    <string name="mfshude">the mafia must be in the game!</string>
+    <string name="toomach">too much mafia!</string>
 </resources>

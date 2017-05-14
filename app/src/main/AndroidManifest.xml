@@ -33,7 +33,6 @@
         <activity
             android:name=".activities.client.WaitingForGameStartActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".activities.server.RolePickActivity"></activity>
     </application>
 
 </manifest>

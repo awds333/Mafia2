@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.awds333.a2016.mafia.R;
 import com.awds333.a2016.mafia.dialogs.ExitDialog;
 import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
+import com.awds333.a2016.mafia.dialogs.RolePickDialog;
 import com.awds333.a2016.mafia.netclasses.PortsNumber;
 import com.awds333.a2016.mafia.netclasses.SocketEngine;
 
@@ -50,6 +51,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     Thread guestThread;
     Activity context;
     boolean wait;
+    RolePickDialog rolePick;
     PrintWriter out;
     BufferedReader reader;
     int peoplecount;
@@ -132,35 +134,23 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
             @Override
             public void onClick(View v) {
                 if(peoplecount>=4){
-                    next = true;
-                    JSONObject object = new JSONObject();
-                    try {
-                        object.put("type","rolepick");
-                    } catch (JSONException e) {
 
-                    }
-                    engine.sendMessage(object.toString());
-                    JSONArray pref = new JSONArray();
-                    Iterator<Integer> ids =idName.keySet().iterator();
-                    while (ids.hasNext()){
-                        JSONObject playernp = new JSONObject();
-                        int id = ids.next();
-                        try {
-                            playernp.put("id",id);
-                            playernp.put("name",idName.get(id));
-                            playernp.put("port",idPort.get(id));
-                            pref.put(playernp);
-                        } catch (JSONException e) {
-                        }
-                    }
-                    Intent intent = new Intent(context,RolePickActivity.class);
-                    intent.putExtra("players",pref.toString());
-                    startActivity(intent);
-                    context.finish();
                 }
                 else Toast.makeText(context,R.string.needfor,Toast.LENGTH_LONG).show();
             }
         });
+        ((Button)findViewById(R.id.roles)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               // if(peoplecount>=4){
+                rolePick.show(getFragmentManager(),"myTag");
+               // }
+               // else Toast.makeText(context,R.string.needfor,Toast.LENGTH_LONG).show();
+            }
+        });
+        rolePick = new RolePickDialog();
+        rolePick.setContext(this);
+        rolePick.newPlayer();
         conteiner = (LinearLayout) findViewById(R.id.conteiner);
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
@@ -271,6 +261,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         message.put("name", object.getString("name"));
                         message.put("id", object.getInt("id"));
                         engine.sendMessage(message.toString());
+                        rolePick.newPlayer();
                         peoplecount++;
                     } else if (type.equals("message")) {
                         JSONObject message = new JSONObject(object.getString("message"));
@@ -298,6 +289,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         conteiner.removeView(conteiner.findViewById(object.getInt("id")));
                         idName.remove(object.getInt("id"));
                         idPort.remove(object.getInt("id"));
+                        rolePick.byePlayer();
                         peoplecount--;
                     }
                 } catch (JSONException e) {
