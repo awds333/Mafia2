@@ -15,6 +15,7 @@ import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 import com.awds333.a2016.mafia.R;
 import com.awds333.a2016.mafia.dialogs.ExitDialog;
 import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
+import com.awds333.a2016.mafia.dialogs.PasswordDialog;
 import com.awds333.a2016.mafia.myviews.ServerListElementView;
 import com.awds333.a2016.mafia.netclasses.IpPinger;
 import com.awds333.a2016.mafia.netclasses.PortsNumber;
@@ -64,6 +66,7 @@ public class ServerSerchActivity extends Activity {
     ConnectivityManager connManager;
     FloatingActionButton floatingButton;
     boolean next;
+    PasswordDialog passwordDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +84,10 @@ public class ServerSerchActivity extends Activity {
                 Handler lisener = new Handler() {
                     @Override
                     public void handleMessage(Message msg) {
-                        startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                        if (msg.what == 1)
+                            startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                        else
+                            finish();
                     }
                 };
                 ((NoWifiDialog) noWifiDialog).setListener(lisener);
@@ -109,7 +115,7 @@ public class ServerSerchActivity extends Activity {
     }
 
     private void startScan() {
-        ((Button)findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 context.onBackPressed();
@@ -152,7 +158,10 @@ public class ServerSerchActivity extends Activity {
                     Handler lisener = new Handler() {
                         @Override
                         public void handleMessage(Message msg) {
-                            startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                            if (msg.what == 1)
+                                startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                            else
+                                finish();
                         }
                     };
                     ((NoWifiDialog) noWifiDialog).setListener(lisener);
@@ -176,7 +185,10 @@ public class ServerSerchActivity extends Activity {
                             Handler lisener = new Handler() {
                                 @Override
                                 public void handleMessage(Message msg) {
-                                    startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                                    if (msg.what == 1)
+                                        startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                                    else
+                                        finish();
                                 }
                             };
                             ((NoWifiDialog) noWifiDialog).setListener(lisener);
@@ -217,7 +229,12 @@ public class ServerSerchActivity extends Activity {
                     JSONObject serverInfo = new JSONObject(reader.readLine());
                     int people = serverInfo.getInt("peoplecount");
                     String servername = serverInfo.getString("servername");
-                    Message msg = adViewHandler.obtainMessage(ip, people, 0, servername);
+                    int lock = 0;
+                    if (serverInfo.getBoolean("lock"))
+                        lock = 1;
+                    else
+                        lock = 0;
+                    Message msg = adViewHandler.obtainMessage(ip, people, lock, servername);
                     adViewHandler.obtainMessage();
                     adViewHandler.sendMessage(msg);
                 } catch (IOException e) {
@@ -245,7 +262,7 @@ public class ServerSerchActivity extends Activity {
         adViewHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                ServerListElementView servEl = new ServerListElementView(context, msg.what, msg.arg1, (String) msg.obj);
+                ServerListElementView servEl = new ServerListElementView(context, msg.what, msg.arg1, msg.arg2, (String) msg.obj);
                 serverElements.add(servEl);
                 listView.addView(servEl.getView(), layoutParams);
                 servEl.setOnClick(new View.OnClickListener() {
@@ -257,7 +274,10 @@ public class ServerSerchActivity extends Activity {
                             Handler lisener = new Handler() {
                                 @Override
                                 public void handleMessage(Message msg) {
-                                    startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                                    if (msg.what == 1)
+                                        startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                                    else
+                                        finish();
                                 }
                             };
                             ((NoWifiDialog) noWifiDialog).setListener(lisener);
@@ -338,9 +358,22 @@ public class ServerSerchActivity extends Activity {
                                             }
                                             player = SocketForPlayer.getSocketForPlayer();
                                             player.setSocket(socket);
+                                            JSONObject pass = new JSONObject(player.getMessage());
+                                            if (pass.getBoolean("lock")) {
+                                                connectingRezult.sendEmptyMessage(-3);
+                                                String ans = player.getMessage();
+                                                while (ans.equals("no")) {
+                                                    connectingRezult.sendEmptyMessage(-4);
+                                                    ans = player.getMessage();
+                                                }
+                                                connectingRezult.sendEmptyMessage(-5);
+                                            }
                                             player.sendMessage(name);
                                             connectingRezult.sendEmptyMessage(port);
                                         } catch (IOException e) {
+                                            player.close();
+                                            connectingRezult.sendEmptyMessage(-1);
+                                        } catch (JSONException e) {
                                             player.close();
                                             connectingRezult.sendEmptyMessage(-1);
                                         }
@@ -361,8 +394,21 @@ public class ServerSerchActivity extends Activity {
                 dialog.dismiss();
                 if (msg.what == -1) {
                     Toast.makeText(context, R.string.cooner, Toast.LENGTH_LONG).show();
+                    if(passwordDialog!=null)
+                    passwordDialog.dismiss();
                 } else if (msg.what == -2) {
                     Toast.makeText(context, R.string.gamews, Toast.LENGTH_LONG).show();
+                } else if (msg.what == -3) {
+                    passwordDialog = new PasswordDialog();
+                    passwordDialog.setChannel(player);
+                    dialog.dismiss();
+                    passwordDialog.setCancelable(false);
+                    passwordDialog.show(getFragmentManager(), "myTag");
+                } else if (msg.what == -4) {
+                    passwordDialog.getView().startAnimation(AnimationUtils.loadAnimation(context, R.anim.pass_anim2));
+                } else if (msg.what == -5) {
+                    passwordDialog.dismiss();
+                    dialog.show();
                 } else {
                     next = true;
                     Intent intent = new Intent(context, WaitingForGameStartActivity.class);

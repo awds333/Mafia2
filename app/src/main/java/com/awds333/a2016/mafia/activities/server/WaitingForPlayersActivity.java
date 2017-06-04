@@ -60,6 +60,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     int port;
     boolean next;
     Object argj;
+    String password;
 
     LinearLayout conteiner;
     LinearLayout.LayoutParams layoutParams;
@@ -83,7 +84,10 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 Handler lisener = new Handler() {
                     @Override
                     public void handleMessage(Message msg) {
-                        startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                        if (msg.what == 1)
+                            startActivityForResult(new Intent(Settings.ACTION_WIFI_SETTINGS), 1);
+                        else
+                            finish();
                     }
                 };
                 ((NoWifiDialog) noWifiDialog).setListener(lisener);
@@ -121,31 +125,31 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     private void startWaiting() {
         idName = new HashMap<Integer, String>();
         idPort = new HashMap<Integer, Integer>();
-        idName.put(0,getIntent().getStringExtra("name"));
+        idName.put(0, getIntent().getStringExtra("name"));
+        password = getIntent().getStringExtra("lock");
         next = false;
         context = this;
-        ((Button)findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 context.onBackPressed();
             }
         });
-        ((Button)findViewById(R.id.start)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.start)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(peoplecount>=4){
+                if (peoplecount >= 4) {
 
-                }
-                else Toast.makeText(context,R.string.needfor,Toast.LENGTH_LONG).show();
+                } else Toast.makeText(context, R.string.needfor, Toast.LENGTH_LONG).show();
             }
         });
-        ((Button)findViewById(R.id.roles)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.roles)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // if(peoplecount>=4){
-                rolePick.show(getFragmentManager(),"myTag");
-               // }
-               // else Toast.makeText(context,R.string.needfor,Toast.LENGTH_LONG).show();
+                // if(peoplecount>=4){
+                rolePick.show(getFragmentManager(), "myTag");
+                // }
+                // else Toast.makeText(context,R.string.needfor,Toast.LENGTH_LONG).show();
             }
         });
         rolePick = new RolePickDialog();
@@ -156,7 +160,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
         view.setId(0);
         ((TextView) view.findViewById(R.id.name)).setText(getIntent().getStringExtra("name"));
-        conteiner.addView(view,layoutParams);
+        conteiner.addView(view, layoutParams);
         port = PortsNumber.SERVER_GUEST_PORT + 1;
         engine = SocketEngine.getSocketEngine();
         engine.addObserver(this);
@@ -182,10 +186,11 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         JSONObject anser = new JSONObject();
                         anser.put("peoplecount", peoplecount);
                         anser.put("servername", servername);
+                        anser.put("lock", password != null);
                         out.println(anser.toString());
                     } else {
                         out.println(port);
-                        engine.addChannel(port);
+                        engine.addChannel(port,password);
                         port++;
                     }
                 } catch (IOException e) {
@@ -226,6 +231,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         Intent intent = new Intent(this, WaitingForPlayersActivity.class);
         intent.putExtra("name", getIntent().getStringExtra("name"));
         intent.putExtra("servname", getIntent().getStringExtra("servname"));
+        intent.putExtra("lock", getIntent().getStringExtra("lock"));
         startActivity(intent);
         finish();
     }
@@ -265,23 +271,23 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         peoplecount++;
                     } else if (type.equals("message")) {
                         JSONObject message = new JSONObject(object.getString("message"));
-                        if(message.getString("type").equals("getPlayList")){
+                        if (message.getString("type").equals("getPlayList")) {
                             JSONObject answer = new JSONObject();
                             JSONArray array = new JSONArray();
                             Iterator<Integer> ids = idName.keySet().iterator();
-                            while (ids.hasNext()){
+                            while (ids.hasNext()) {
                                 JSONObject ob = new JSONObject();
                                 int idi = ids.next();
-                                ob.put("id",idi);
-                                ob.put("name",idName.get(idi));
+                                ob.put("id", idi);
+                                ob.put("name", idName.get(idi));
                                 array.put(ob);
                             }
-                            answer.put("PlayList",array);
-                            answer.put("type","PlayList");
-                            answer.put("id",object.getInt("id"));
-                            answer.put("name",idName.get(object.getInt("id")));
-                            answer.put("type","fornew");
-                            engine.sendMessageById(answer.toString(),object.getInt("id"));
+                            answer.put("PlayList", array);
+                            answer.put("type", "PlayList");
+                            answer.put("id", object.getInt("id"));
+                            answer.put("name", idName.get(object.getInt("id")));
+                            answer.put("type", "fornew");
+                            engine.sendMessageById(answer.toString(), object.getInt("id"));
                         }
                     } else if (type.equals("connectionfail")) {
                         engine.killChannelById(object.getInt("id"));

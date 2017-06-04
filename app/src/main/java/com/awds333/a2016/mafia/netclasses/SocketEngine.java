@@ -16,8 +16,8 @@ public class SocketEngine extends Observable {
     private static SocketEngine socketEngine;
     private ArrayList<PlayerChannel> channels;
     private ArrayList<ServerSocket> serverSockets;
-    private int mport,channelId,killId,msId;
-    private String mmessage,mmessageId;
+    private int mport, channelId, killId, msId;
+    private String mmessage, mmessageId, password;
 
     private SocketEngine() {
         channels = new ArrayList<PlayerChannel>();
@@ -31,8 +31,9 @@ public class SocketEngine extends Observable {
         return socketEngine;
     }
 
-    public void addChannel(int port) {
+    public void addChannel(int port, String pass) {
         this.mport = port;
+        password = pass;
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -49,13 +50,28 @@ public class SocketEngine extends Observable {
                         public void run() {
                             PlayerChannel channel = channels.get(channels.size() - 1);
                             try {
+                                JSONObject passInfo = new JSONObject();
+                                String pass = channel.getPassword();
+                                passInfo.put("lock", pass != null);
+                                channel.sendMessage(passInfo.toString());
+
+                                if (pass != null) {
+                                    String ans = channel.getMessage();
+                                    while (!ans.equals(pass)) {
+                                        channel.sendMessage("no");
+                                        ans = channel.getMessage();
+                                    }
+                                    channel.sendMessage("yes");
+                                }
+
                                 String name = channel.getMessage();
                                 JSONObject newInfo = new JSONObject();
                                 newInfo.put("type", "newChannel");
                                 newInfo.put("name", name);
                                 newInfo.put("port", channel.getPort());
                                 newInfo.put("id", channel.getId());
-                                Log.d("awdsawds","new id "+channel.getId());
+                                Log.d("awdsawds", "new id " + channel.getId());
+                                channel.unlock();
                                 socketEngine.setChanged();
                                 notifyObservers(newInfo);
                                 while (true) {
@@ -64,8 +80,8 @@ public class SocketEngine extends Observable {
                                     object.put("type", "message");
                                     object.put("id", channel.getId());
                                     object.put("message", message);
-                                    Log.d("awdsawds","message id "+channel.getId());
-                                    Log.d("awdsawds",message);
+                                    Log.d("awdsawds", "message id " + channel.getId());
+                                    Log.d("awdsawds", message);
                                     socketEngine.setChanged();
                                     notifyObservers(object);
                                 }
@@ -74,21 +90,23 @@ public class SocketEngine extends Observable {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                            JSONObject lostConnection = new JSONObject();
-                            try {
-                                lostConnection.put("type", "connectionfail");
-                                lostConnection.put("id", channel.getId());
-                                Log.d("awdsawds","di id "+channel.getId());
-                                socketEngine.setChanged();
-                                notifyObservers(lostConnection);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
+                            if (!channel.isLock()) {
+                                JSONObject lostConnection = new JSONObject();
+                                try {
+                                    lostConnection.put("type", "connectionfail");
+                                    lostConnection.put("id", channel.getId());
+                                    Log.d("awdsawds", "di id " + channel.getId());
+                                    socketEngine.setChanged();
+                                    notifyObservers(lostConnection);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            } else killChannelById(channel.getId());
                         }
                     });
-                    PlayerChannel channel = new PlayerChannel(thread1, socket, channelId, mport);
+                    PlayerChannel channeltrans = new PlayerChannel(thread1, socket, channelId, mport, password);
+                    channels.add(channeltrans);
                     channelId++;
-                    channels.add(channel);
                     thread1.start();
                     serverSockets.remove(serverSocket);
                 } catch (IOException e) {
@@ -103,10 +121,10 @@ public class SocketEngine extends Observable {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (serverSockets.size()>0) {
+                while (serverSockets.size() > 0) {
                     try {
-                        if(serverSockets.get(0)!=null)
-                        serverSockets.get(0).close();
+                        if (serverSockets.get(0) != null)
+                            serverSockets.get(0).close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -123,12 +141,14 @@ public class SocketEngine extends Observable {
             @Override
             public void run() {
                 int id = killId;
-                for (PlayerChannel channel : channels) {
-                    if (channel.getId() == id) {
-                        channel.close();
-                        channels.remove(channel);
-                        break;
-                    }
+                if(channels!=null)
+                for (int i = 0; i < channels.size(); i++) {
+                    if (channels.get(i) != null)
+                        if (channels.get(i).getId() == id) {
+                            channels.get(i).close();
+                            channels.remove(channels.get(i));
+                            break;
+                        }
                 }
             }
         });
@@ -142,14 +162,15 @@ public class SocketEngine extends Observable {
             public void run() {
                 String mes = mmessage;
                 for (PlayerChannel channel : channels) {
-                    channel.sendMessage(mes);
+                    if (!channel.isLock())
+                        channel.sendMessage(mes);
                 }
             }
         });
         thread.start();
     }
 
-    public void sendMessageById(String message, int id){
+    public void sendMessageById(String message, int id) {
         mmessageId = message;
         msId = id;
         Thread thread = new Thread(new Runnable() {
@@ -158,7 +179,7 @@ public class SocketEngine extends Observable {
                 String mes = mmessageId;
                 int id = msId;
                 for (PlayerChannel channel : channels) {
-                    if(channel.getId()==id) {
+                    if (channel.getId() == id) {
                         channel.sendMessage(mes);
                         break;
                     }

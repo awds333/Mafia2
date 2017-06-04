@@ -10,14 +10,13 @@
     <string name="join">join!</string>
     <string name="players">players</string>
     <string name="entername">enter name please!</string>
-    <string name="namemast">name must be shorter than 20 characters!</string>
     <string name="serventername">enter server name please!</string>
-    <string name="servnamemast">server name must be shorter than 20 characters!</string>
     <string name="nowifi">connect to wifi please!</string>
     <string name="back">back</string>
     <string name="servers">found servers:</string>
     <string name="start">start</string>
     <string name="connecting">connecting</string>
+    <string name="connect">connect</string>
     <string name="cooner">connection error!</string>
     <string name="gamews">game was all reade stared</string>
     <string name="exit">exit</string>
@@ -30,4 +29,5 @@
     <string name="defaul">default</string>
     <string name="mfshude">the mafia must be in the game!</string>
     <string name="toomach">too much mafia!</string>
+    <string name="password">password</string>
 </resources>

@@ -2,6 +2,7 @@ package com.awds333.a2016.mafia.activities;
 
 import android.app.Activity;
 import android.app.DialogFragment;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -21,6 +22,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         b1 = (Button)findViewById(R.id.newserver);
         b2 = (Button)findViewById(R.id.findeserv);
+        SharedPreferences.Editor editor =getSharedPreferences("pref",MODE_PRIVATE).edit();
+        editor.putBoolean("remember",true);
+        editor.commit();
         b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

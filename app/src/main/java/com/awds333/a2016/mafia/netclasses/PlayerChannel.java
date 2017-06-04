@@ -15,12 +15,29 @@ public class PlayerChannel {
     private BufferedReader reader;
     private int id;
     private int port;
+    private String password;
+    private boolean lock;
 
-    public PlayerChannel(Thread thread, Socket socket, int id, int port) {
+    public String getPassword() {
+        return password;
+    }
+
+    public void unlock(){
+        lock = false;
+    }
+
+    public boolean isLock(){
+        return lock;
+    }
+
+    public PlayerChannel(Thread thread, Socket socket, int id, int port, String pass) {
         this.thread = thread;
         this.socket = socket;
         this.id = id;
         this.port = port;
+        lock = true;
+        password = pass;
+
 
         try {
             reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
