@@ -269,6 +269,8 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         engine.sendMessage(message.toString());
                         rolePick.newPlayer();
                         peoplecount++;
+                        if(!engine.isPinging())
+                            engine.startPing();
                     } else if (type.equals("message")) {
                         JSONObject message = new JSONObject(object.getString("message"));
                         if (message.getString("type").equals("getPlayList")) {
@@ -297,6 +299,8 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         idPort.remove(object.getInt("id"));
                         rolePick.byePlayer();
                         peoplecount--;
+                        if (peoplecount==1)
+                            engine.stopPing();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

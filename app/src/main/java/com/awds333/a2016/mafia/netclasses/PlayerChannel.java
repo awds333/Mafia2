@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class PlayerChannel {
@@ -15,11 +16,16 @@ public class PlayerChannel {
     private BufferedReader reader;
     private int id;
     private int port;
+    private InetAddress address;
     private String password;
     private boolean lock;
 
     public String getPassword() {
         return password;
+    }
+
+    public InetAddress getAddress() {
+        return address;
     }
 
     public void unlock(){
@@ -37,7 +43,7 @@ public class PlayerChannel {
         this.port = port;
         lock = true;
         password = pass;
-
+        address=socket.getInetAddress();
 
         try {
             reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));

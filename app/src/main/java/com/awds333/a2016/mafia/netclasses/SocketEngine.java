@@ -18,6 +18,8 @@ public class SocketEngine extends Observable {
     private ArrayList<ServerSocket> serverSockets;
     private int mport, channelId, killId, msId;
     private String mmessage, mmessageId, password;
+    private Thread ping;
+    private boolean pinging;
 
     private SocketEngine() {
         channels = new ArrayList<PlayerChannel>();
@@ -141,15 +143,15 @@ public class SocketEngine extends Observable {
             @Override
             public void run() {
                 int id = killId;
-                if(channels!=null)
-                for (int i = 0; i < channels.size(); i++) {
-                    if (channels.get(i) != null)
-                        if (channels.get(i).getId() == id) {
-                            channels.get(i).close();
-                            channels.remove(channels.get(i));
-                            break;
-                        }
-                }
+                if (channels != null)
+                    for (int i = 0; i < channels.size(); i++) {
+                        if (channels.get(i) != null)
+                            if (channels.get(i).getId() == id) {
+                                channels.get(i).close();
+                                channels.remove(channels.get(i));
+                                break;
+                            }
+                    }
             }
         });
         thread.start();
@@ -187,6 +189,46 @@ public class SocketEngine extends Observable {
             }
         });
         thread.start();
+    }
+
+    public void startPing() {
+        if (ping == null) {
+            ping = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (pinging)
+                        for (int i = 0; i < channels.size(); i++) {
+                            try {
+                                if (!channels.get(i).getAddress().isReachable(500)) {
+                                    killChannelById(channels.get(i).getId());
+                                    Thread.sleep(1000);
+                                }
+                            } catch (IOException e) {
+                                killChannelById(channels.get(i).getId());
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e1) {
+                                    e1.printStackTrace();
+                                }
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            if (!pinging)
+                                break;
+                        }
+                }
+            });
+        }
+        pinging = true;
+        ping.start();
+    }
+
+    public void stopPing() {
+        pinging = false;
+    }
+
+    public boolean isPinging() {
+        return pinging;
     }
 
     public void finish() {
