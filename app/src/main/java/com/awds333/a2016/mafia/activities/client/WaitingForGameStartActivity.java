@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.awds333.a2016.mafia.R;
 import com.awds333.a2016.mafia.activities.MainActivity;
+import com.awds333.a2016.mafia.activities.PlayActivity;
 import com.awds333.a2016.mafia.dialogs.ConnectionErrorDialog;
 import com.awds333.a2016.mafia.dialogs.ExitDialog;
 import com.awds333.a2016.mafia.netclasses.SocketForPlayer;
@@ -101,6 +102,13 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                                 start.obtainMessage();
                                 start.sendMessage(msg);
                                 try {
+                                    JSONObject ob = new JSONObject(mess);
+                                    if(ob.getString("type").equals("gamestart"))
+                                        listen=false;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                try {
                                     Thread.sleep(100);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
@@ -148,6 +156,17 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                         } else if (type.equals("connectionfail")) {
                             conteiner.removeView(conteiner.findViewById(object.getInt("id")));
                             idName.remove(object.getInt("id"));
+                        } else if(type.equals("gamestart")){
+                            JSONObject message = new JSONObject();
+                            message.put("type","name");
+                            message.put("name",mName);
+                            player.sendMessage(mName);
+                            next = true;
+                            Intent intent = new Intent(context, PlayActivity.class);
+                            intent.putExtra("type",2);
+                            intent.putExtra("name",mName);
+                            startActivity(intent);
+                            finish();
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.awds333.a2016.mafia.R;
+import com.awds333.a2016.mafia.activities.PlayActivity;
 import com.awds333.a2016.mafia.dialogs.ExitDialog;
 import com.awds333.a2016.mafia.dialogs.NoWifiDialog;
 import com.awds333.a2016.mafia.dialogs.RolePickDialog;
@@ -139,7 +140,24 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
             @Override
             public void onClick(View v) {
                 if (peoplecount >= 4) {
-
+                    Intent intent = new Intent(context, PlayActivity.class);
+                    intent.putExtra("type",1);
+                    intent.putExtra("mafia",rolePick.getMafias());
+                    intent.putExtra("doctor",rolePick.isDoctor());
+                    intent.putExtra("detective",rolePick.isDetective());
+                    intent.putExtra("name",getIntent().getStringExtra("name"));
+                    wait = false;
+                    try {
+                        guestSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    next = true;
+                    engine.deleteObservers();
+                    engine.killLockedChanalse();
+                    engine.closeServerSockets();
+                    startActivity(intent);
+                    finish();
                 } else Toast.makeText(context, R.string.needfor, Toast.LENGTH_LONG).show();
             }
         });
@@ -292,7 +310,6 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                             engine.sendMessageById(answer.toString(), object.getInt("id"));
                         }
                     } else if (type.equals("connectionfail")) {
-                        engine.killChannelById(object.getInt("id"));
                         engine.sendMessage(object.toString());
                         conteiner.removeView(conteiner.findViewById(object.getInt("id")));
                         idName.remove(object.getInt("id"));

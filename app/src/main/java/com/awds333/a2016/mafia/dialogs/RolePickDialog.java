@@ -149,4 +149,16 @@ public class RolePickDialog extends DialogFragment implements View.OnClickListen
         if(buttonView.getId()==R.id.doctor)
             doctor = isChecked;
     }
+
+    public boolean isDetective() {
+        return detective;
+    }
+
+    public boolean isDoctor() {
+        return doctor;
+    }
+
+    public int getMafias() {
+        return mf;
+    }
 }

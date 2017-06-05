@@ -1,7 +1,5 @@
 package com.awds333.a2016.mafia.netclasses;
 
-import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -72,7 +70,6 @@ public class SocketEngine extends Observable {
                                 newInfo.put("name", name);
                                 newInfo.put("port", channel.getPort());
                                 newInfo.put("id", channel.getId());
-                                Log.d("awdsawds", "new id " + channel.getId());
                                 channel.unlock();
                                 socketEngine.setChanged();
                                 notifyObservers(newInfo);
@@ -82,8 +79,6 @@ public class SocketEngine extends Observable {
                                     object.put("type", "message");
                                     object.put("id", channel.getId());
                                     object.put("message", message);
-                                    Log.d("awdsawds", "message id " + channel.getId());
-                                    Log.d("awdsawds", message);
                                     socketEngine.setChanged();
                                     notifyObservers(object);
                                 }
@@ -97,13 +92,13 @@ public class SocketEngine extends Observable {
                                 try {
                                     lostConnection.put("type", "connectionfail");
                                     lostConnection.put("id", channel.getId());
-                                    Log.d("awdsawds", "di id " + channel.getId());
                                     socketEngine.setChanged();
                                     notifyObservers(lostConnection);
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                            } else killChannelById(channel.getId());
+                            }
+                            killChannelById(channel.getId());
                         }
                     });
                     PlayerChannel channeltrans = new PlayerChannel(thread1, socket, channelId, mport, password);
@@ -150,6 +145,24 @@ public class SocketEngine extends Observable {
                                 channels.get(i).close();
                                 channels.remove(channels.get(i));
                                 break;
+                            }
+                    }
+            }
+        });
+        thread.start();
+    }
+
+    public void killLockedChanalse(){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int id = killId;
+                if (channels != null)
+                    for (int i = 0; i < channels.size(); i++) {
+                        if (channels.get(i) != null)
+                            if (channels.get(i).isLock()) {
+                                channels.get(i).close();
+                                channels.remove(channels.get(i));
                             }
                     }
             }
