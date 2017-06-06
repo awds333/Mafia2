@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.awds333.a2016.mafia.R;
 import com.awds333.a2016.mafia.activities.MainActivity;
@@ -143,7 +142,6 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                     if (listen)
                         dialogFragment.show(getFragmentManager(), "f");
                 } else if (msg.what == 2) {
-                    Toast.makeText(context, (String) msg.obj, Toast.LENGTH_LONG).show();
                     try {
                         JSONObject object = new JSONObject((String) msg.obj);
                         String type = object.getString("type");

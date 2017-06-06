@@ -100,6 +100,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     @Override
     protected void onDestroy() {
         if (next == false) {
+            engine.stopPing();
             engine.deleteObserver(this);
             Thread thread = new Thread(new Runnable() {
                 @Override
@@ -139,7 +140,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         ((Button) findViewById(R.id.start)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (peoplecount >= 4) {
+                if (peoplecount >= 1) {
                     Intent intent = new Intent(context, PlayActivity.class);
                     intent.putExtra("type",1);
                     intent.putExtra("mafia",rolePick.getMafias());

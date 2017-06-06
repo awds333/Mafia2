@@ -18,6 +18,7 @@ public class PlayActivity extends Activity implements Observer{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
         if(getIntent().getExtras().getInt("type")==1){
             Bundle extras = getIntent().getExtras();
