@@ -1,5 +1,7 @@
 package com.awds333.a2016.mafia.netclasses;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -79,6 +81,7 @@ public class SocketEngine extends Observable {
                                     object.put("type", "message");
                                     object.put("id", channel.getId());
                                     object.put("message", message);
+                                    Log.d("awdsawds", object.toString());
                                     socketEngine.setChanged();
                                     notifyObservers(object);
                                 }
@@ -92,8 +95,10 @@ public class SocketEngine extends Observable {
                                 try {
                                     lostConnection.put("type", "connectionfail");
                                     lostConnection.put("id", channel.getId());
-                                    socketEngine.setChanged();
-                                    notifyObservers(lostConnection);
+                                    if (socketEngine != null) {
+                                        socketEngine.setChanged();
+                                        notifyObservers(lostConnection);
+                                    }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -143,7 +148,8 @@ public class SocketEngine extends Observable {
                         if (channels.get(i) != null)
                             if (channels.get(i).getId() == id) {
                                 channels.get(i).close();
-                                channels.remove(channels.get(i));
+                                channels.remove(i);
+                                //channels.remove(channels.get(i));
                                 break;
                             }
                     }
@@ -152,7 +158,7 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
-    public void killLockedChanalse(){
+    public void killLockedChanalse() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -172,36 +178,23 @@ public class SocketEngine extends Observable {
 
     public void sendMessage(String message) {
         mmessage = message;
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String mes = mmessage;
-                for (PlayerChannel channel : channels) {
-                    if (!channel.isLock())
-                        channel.sendMessage(mes);
-                }
-            }
-        });
-        thread.start();
+        String mes = mmessage;
+        for (PlayerChannel channel : channels) {
+            if (!channel.isLock())
+                channel.sendMessage(mes);
+        }
     }
 
     public void sendMessageById(String message, int id) {
-        mmessageId = message;
-        msId = id;
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String mes = mmessageId;
-                int id = msId;
-                for (PlayerChannel channel : channels) {
-                    if (channel.getId() == id) {
-                        channel.sendMessage(mes);
-                        break;
-                    }
-                }
+
+        for (PlayerChannel channel : channels) {
+            if (channel.getId() == id) {
+                channel.sendMessage(message);
+                break;
             }
-        });
-        thread.start();
+        }
+
+
     }
 
     public void startPing() {
@@ -212,7 +205,7 @@ public class SocketEngine extends Observable {
                     while (pinging)
                         for (int i = 0; i < channels.size(); i++) {
                             try {
-                                if (!channels.get(i).getAddress().isReachable(500)) {
+                                if (!channels.get(i).getAddress().isReachable(1000)) {
                                     killChannelById(channels.get(i).getId());
                                     Thread.sleep(1000);
                                 }
@@ -233,7 +226,8 @@ public class SocketEngine extends Observable {
             });
         }
         pinging = true;
-        ping.start();
+        if (!ping.isAlive())
+            ping.start();
     }
 
     public void stopPing() {
@@ -249,8 +243,9 @@ public class SocketEngine extends Observable {
             @Override
             public void run() {
                 closeServerSockets();
-                for (PlayerChannel channel : channels) {
-                    channel.close();
+                for (int i = 0; i < channels.size(); i++) {
+                    if (channels.get(i) != null)
+                        channels.get(i).close();
                 }
                 channels = null;
                 socketEngine = null;

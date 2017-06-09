@@ -50,7 +50,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     ServerSocket guestSocket;
     Socket socket;
     Thread guestThread;
-    Activity context;
+    WaitingForPlayersActivity context;
     boolean wait;
     RolePickDialog rolePick;
     PrintWriter out;
@@ -140,7 +140,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         ((Button) findViewById(R.id.start)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (peoplecount >= 1) {
+                if (peoplecount >= 4) {
                     Intent intent = new Intent(context, PlayActivity.class);
                     intent.putExtra("type",1);
                     intent.putExtra("mafia",rolePick.getMafias());
@@ -154,7 +154,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         e.printStackTrace();
                     }
                     next = true;
-                    engine.deleteObservers();
+                    engine.deleteObserver(context);
                     engine.killLockedChanalse();
                     engine.closeServerSockets();
                     startActivity(intent);

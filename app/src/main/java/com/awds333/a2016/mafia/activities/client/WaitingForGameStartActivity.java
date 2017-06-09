@@ -55,7 +55,7 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                 context.onBackPressed();
             }
         });
-        final Thread thread = new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 player = SocketForPlayer.getSocketForPlayer();
@@ -158,7 +158,7 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                             JSONObject message = new JSONObject();
                             message.put("type","name");
                             message.put("name",mName);
-                            player.sendMessage(mName);
+                            player.sendMessage(message.toString());
                             next = true;
                             Intent intent = new Intent(context, PlayActivity.class);
                             intent.putExtra("type",2);
