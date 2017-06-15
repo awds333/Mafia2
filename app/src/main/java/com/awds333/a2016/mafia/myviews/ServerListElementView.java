@@ -9,9 +9,6 @@ import android.widget.TextView;
 
 import com.awds333.a2016.mafia.R;
 
-/**
- * Created by Usre on 20.01.2017.
- */
 
 public class ServerListElementView{
     private View view;
@@ -20,7 +17,7 @@ public class ServerListElementView{
         view = LayoutInflater.from(context).inflate(R.layout.server_list_element, null);
         this.ip = ip;
         view.findViewById(R.id.join).setId(ip);
-        ((TextView)view.findViewById(R.id.name)).setText(serverName);
+        ((TextView)view.findViewById(R.id.text)).setText(serverName);
         ((TextView)view.findViewById(R.id.playerscount)).setText(people+"");
         if (lock==0)
             ((ImageView)view.findViewById(R.id.lock)).setVisibility(View.INVISIBLE);

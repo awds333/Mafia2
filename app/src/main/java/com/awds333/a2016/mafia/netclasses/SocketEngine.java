@@ -103,6 +103,7 @@ public class SocketEngine extends Observable {
                                     e.printStackTrace();
                                 }
                             }
+                            Log.d("awdsawds",channel.getId()+" died");
                             killChannelById(channel.getId());
                         }
                     });

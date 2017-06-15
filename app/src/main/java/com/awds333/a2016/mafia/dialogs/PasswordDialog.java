@@ -21,11 +21,11 @@ public class PasswordDialog extends DialogFragment implements View.OnClickListen
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         dialog = inflater.inflate(R.layout.name_dialog, null);
-        ((EditText)dialog.findViewById(R.id.name)).setHint(R.string.password);
-        ((EditText)dialog.findViewById(R.id.name)).setInputType(InputType.TYPE_CLASS_NUMBER);
+        ((EditText)dialog.findViewById(R.id.text)).setHint(R.string.password);
+        ((EditText)dialog.findViewById(R.id.text)).setInputType(InputType.TYPE_CLASS_NUMBER);
         InputFilter[] fArray = new InputFilter[1];
         fArray[0] = new InputFilter.LengthFilter(8);
-        ((EditText)dialog.findViewById(R.id.name)).setFilters(fArray);
+        ((EditText)dialog.findViewById(R.id.text)).setFilters(fArray);
         ((Button)dialog.findViewById(R.id.yesbt)).setOnClickListener(this);
         ((Button)dialog.findViewById(R.id.canselbt)).setOnClickListener(this);
         return dialog;
@@ -38,7 +38,7 @@ public class PasswordDialog extends DialogFragment implements View.OnClickListen
     @Override
     public void onClick(View v) {
         if(v.getId()==R.id.yesbt){
-            player.sendMessage(((EditText)dialog.findViewById(R.id.name)).getText().toString());
+            player.sendMessage(((EditText)dialog.findViewById(R.id.text)).getText().toString());
         } else {
             player.close();
             dismiss();

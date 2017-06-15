@@ -75,6 +75,7 @@ public class ServerEngine extends Engine implements Observer {
             if(id == 0){
                 role.put("type","Iam");
                 role.put("role",roles[i]);
+                role.put("people",idName.toString());
                 Log.d("awdsawds", role.toString());
                 Log.d("awdsawds", id + "k");
                 setChanged();
@@ -82,7 +83,7 @@ public class ServerEngine extends Engine implements Observer {
             } else {
                 role.put("type", "Iam");
                 role.put("role", roles[i]);
-                role.put("id", id);
+                role.put("people",idName.toString());
                 Log.d("awdsawds", role.toString());
                 Log.d("awdsawds", id + "");
                 socketEngine.sendMessageById(role.toString(), id);
@@ -153,6 +154,13 @@ public class ServerEngine extends Engine implements Observer {
                 if (message.getString("type").equals("name")) {
                     idName.put(news.getInt("id"), message.getString("name"));
                 }
+            } else if(type.equals("connectionfail")){
+                JSONObject object = new JSONObject();
+                object.put("id",news.getInt("id"));
+                object.put("type","playergone");
+                setChanged();
+                notifyObservers(object);
+                socketEngine.sendMessage(object.toString());
             }
         } catch (JSONException e) {
             e.printStackTrace();

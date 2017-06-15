@@ -41,7 +41,7 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
         context = getActivity();
         sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
         if(sPreferences.getBoolean("remember",false)){
-            ((EditText)dialog.findViewById(R.id.name)).setText(sPreferences.getString("name",""));
+            ((EditText)dialog.findViewById(R.id.text)).setText(sPreferences.getString("name",""));
             ((EditText)dialog.findViewById(R.id.sname)).setText(sPreferences.getString("sname",""));
         }
         return dialog;
@@ -50,7 +50,7 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.yesbt) {
-            String name = ((EditText) dialog.findViewById(R.id.name)).getText().toString();
+            String name = ((EditText) dialog.findViewById(R.id.text)).getText().toString();
             String servname = ((EditText) dialog.findViewById(R.id.sname)).getText().toString();
             if (!name.replaceAll("\\s+", "").equals("")) {
                 if (!servname.replaceAll("\\s+", "").equals("")) {

@@ -29,14 +29,14 @@ public class NamePickDialog extends DialogFragment implements View.OnClickListen
         context = getActivity();
         sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
         if(sPreferences.getBoolean("remember",false))
-            ((EditText)dialog.findViewById(R.id.name)).setText(sPreferences.getString("name",""));
+            ((EditText)dialog.findViewById(R.id.text)).setText(sPreferences.getString("name",""));
         return dialog;
     }
 
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.yesbt) {
-            String s = ((EditText) dialog.findViewById(R.id.name)).getText().toString();
+            String s = ((EditText) dialog.findViewById(R.id.text)).getText().toString();
             if (!s.replaceAll("\\s+", "").equals("")) {
                 Intent intent = new Intent(context, ServerSerchActivity.class);
                 intent.putExtra("name", s);

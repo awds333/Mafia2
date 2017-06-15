@@ -30,4 +30,10 @@
     <string name="mfshude">the mafia must be in the game!</string>
     <string name="toomach">too much mafia!</string>
     <string name="password">password</string>
+    <string name="kill_him">kill him:</string>
+    <string name="day">day</string>
+    <string name="night">night</string>
+    <string name="my_role">my role</string>
+    <string name="kill_me">kill me:</string>
+    <string name="hide_screen">Hide the screen from other players!</string>
 </resources>

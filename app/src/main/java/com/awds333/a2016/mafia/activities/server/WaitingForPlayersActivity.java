@@ -178,7 +178,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
         view.setId(0);
-        ((TextView) view.findViewById(R.id.name)).setText(getIntent().getStringExtra("name"));
+        ((TextView) view.findViewById(R.id.text)).setText(getIntent().getStringExtra("name"));
         conteiner.addView(view, layoutParams);
         port = PortsNumber.SERVER_GUEST_PORT + 1;
         engine = SocketEngine.getSocketEngine();
@@ -276,7 +276,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                     String type = object.getString("type");
                     if (type.equals("newChannel")) {
                         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
-                        ((TextView) view.findViewById(R.id.name)).setText(object.getString("name"));
+                        ((TextView) view.findViewById(R.id.text)).setText(object.getString("name"));
                         view.setId(object.getInt("id"));
                         conteiner.addView(view, layoutParams);
                         idPort.put(object.getInt("id"), object.getInt("port"));
@@ -288,8 +288,8 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         engine.sendMessage(message.toString());
                         rolePick.newPlayer();
                         peoplecount++;
-                        if(!engine.isPinging())
-                            engine.startPing();
+                        if(!engine.isPinging());
+//                            engine.startPing();
                     } else if (type.equals("message")) {
                         JSONObject message = new JSONObject(object.getString("message"));
                         if (message.getString("type").equals("getPlayList")) {
