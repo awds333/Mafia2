@@ -5,30 +5,30 @@
         android:toXDelta="-50"
         android:repeatCount="1"
         android:repeatMode="reverse"
-        android:duration="1000">
+        android:duration="100">
     </translate>
     <translate
         android:fromXDelta="0"
         android:toXDelta="40"
-        android:startOffset="1000"
+        android:startOffset="100"
         android:repeatCount="1"
         android:repeatMode="reverse"
-        android:duration="1000">
+        android:duration="100">
     </translate>
     <translate
         android:fromXDelta="0"
         android:toXDelta="-30"
-        android:startOffset="2000"
+        android:startOffset="200"
         android:repeatCount="1"
         android:repeatMode="reverse"
-        android:duration="1000">
+        android:duration="100">
     </translate>
     <translate
         android:fromXDelta="0"
         android:toXDelta="15"
-        android:startOffset="3000"
+        android:startOffset="300"
         android:repeatCount="1"
         android:repeatMode="reverse"
-        android:duration="1000">
+        android:duration="100">
     </translate>
 </set>
