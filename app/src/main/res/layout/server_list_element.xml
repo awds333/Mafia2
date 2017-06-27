@@ -43,14 +43,37 @@
 
             <TextView
                 android:id="@+id/text"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
-                android:layout_weight="1"
+                android:ellipsize="middle"
+                android:maxLength="10"
+                android:maxLines="1"
+                android:maxWidth="155dp"
                 android:text="TextView"
                 android:textAllCaps="false"
                 android:textColor="@android:color/background_dark"
                 android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_weight="1"
+                android:text="@string/players"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/playerscount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_weight="1"
+                android:text="8"
+                android:textAllCaps="false"
+                android:textSize="24sp"
+                android:textStyle="normal|bold" />
 
         </LinearLayout>
     </android.support.constraint.ConstraintLayout>
@@ -66,25 +89,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/players"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/playerscount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:text="8"
-            android:textAllCaps="false"
-            android:textSize="24sp"
-            android:textStyle="normal|bold" />
 
     </LinearLayout>
 </LinearLayout>

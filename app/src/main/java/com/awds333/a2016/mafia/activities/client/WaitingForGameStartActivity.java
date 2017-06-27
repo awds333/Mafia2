@@ -71,7 +71,6 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                         }
                         player.sendMessage(object.toString());
                         try {
-                            player.getMessage();
                             JSONObject plList = new JSONObject();
                             while (true){
                                 String message = player.getMessage();
@@ -133,7 +132,7 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                         int id = idi.next();
                         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
                         view.setId(id);
-                        ((TextView) view.findViewById(R.id.text)).setText(idName.get(id));
+                        ((TextView) view.findViewById(R.id.name)).setText(idName.get(id));
                         conteiner.addView(view, params);
                     }
                 } else if (msg.what == 0) {
@@ -149,7 +148,10 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                             idName.put(object.getInt("id"), object.getString("name"));
                             View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
                             view.setId(object.getInt("id"));
-                            ((TextView) view.findViewById(R.id.text)).setText(object.getString("name"));
+                            ((TextView) view.findViewById(R.id.name)).setText(object.getString("name"));
+                            if(object.getBoolean("hasImage")){
+
+                            }
                             conteiner.addView(view, params);
                         } else if (type.equals("connectionfail")) {
                             conteiner.removeView(conteiner.findViewById(object.getInt("id")));

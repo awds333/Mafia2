@@ -1,19 +1,16 @@
 package com.awds333.a2016.mafia.netclasses;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
 public class PlayerChannel {
     private Thread thread;
     private Socket socket;
-    private PrintWriter out;
-    private BufferedReader reader;
+    private DataOutputStream out;
+    private DataInputStream reader;
     private int id;
     private int port;
     private InetAddress address;
@@ -46,29 +43,45 @@ public class PlayerChannel {
         address=socket.getInetAddress();
 
         try {
-            reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-            out = new PrintWriter(new BufferedWriter(
-                    new OutputStreamWriter(this.socket.getOutputStream())),
-                    true);
+            reader = new DataInputStream(this.socket.getInputStream());
+            out = new DataOutputStream(this.socket.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void sendMessage(String message) {
-        out.println(message);
+        try {
+            sendByteMessage(message.getBytes("UTF-8"));
+        } catch (IOException e) {
+        }
+    }
+
+    public void sendByteMessage(byte[] bytes) throws IOException {
+        out.writeInt(bytes.length);
+        out.write(bytes);
     }
 
     public String getMessage() throws IOException {
-        String message = reader.readLine();
-        if (message==null)
-            throw  new IOException();
+        byte data[] =getByteMessage();
+        String message = new String(data,"UTF-8");
         return message;
+    }
+
+    public byte[] getByteMessage() throws IOException {
+        int length = reader.readInt();
+        byte[] data = new byte[length];
+        reader.readFully(data);
+        return  data;
     }
 
     public void close() {
         if (out != null) {
-            out.close();
+            try {
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         if (reader != null) {
             try {

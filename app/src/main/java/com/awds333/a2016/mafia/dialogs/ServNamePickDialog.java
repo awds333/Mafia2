@@ -25,11 +25,12 @@ import static com.awds333.a2016.mafia.R.id.conteiner;
 
 
 public class ServNamePickDialog extends DialogFragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
-    View dialog;
-    Activity context;
-    LinearLayout pasLayout;
-    EditText password;
-    SharedPreferences sPreferences;
+    private View dialog;
+    private Activity context;
+    private LinearLayout pasLayout;
+    private EditText password;
+    private SharedPreferences sPreferences;
+    private boolean image = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -47,6 +48,10 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
         return dialog;
     }
 
+    public void setImage(){
+        image = true;
+    }
+
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.yesbt) {
@@ -57,6 +62,7 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
                     Intent intent = new Intent(context, WaitingForPlayersActivity.class);
                     intent.putExtra("name", name);
                     intent.putExtra("servername", servname);
+                    intent.putExtra("image",image);
                     if(password!=null) {
                         intent.putExtra("lock", password.getText().toString());
                     }

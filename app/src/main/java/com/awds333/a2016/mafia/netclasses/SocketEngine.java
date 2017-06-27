@@ -66,10 +66,8 @@ public class SocketEngine extends Observable {
                                     channel.sendMessage("yes");
                                 }
 
-                                String name = channel.getMessage();
-                                JSONObject newInfo = new JSONObject();
+                                JSONObject newInfo = new JSONObject(channel.getMessage());
                                 newInfo.put("type", "newChannel");
-                                newInfo.put("name", name);
                                 newInfo.put("port", channel.getPort());
                                 newInfo.put("id", channel.getId());
                                 channel.unlock();
@@ -187,7 +185,7 @@ public class SocketEngine extends Observable {
     }
 
     public void sendMessageById(String message, int id) {
-
+        Log.d("awdsawds",message+"  to id: "+id);
         for (PlayerChannel channel : channels) {
             if (channel.getId() == id) {
                 channel.sendMessage(message);

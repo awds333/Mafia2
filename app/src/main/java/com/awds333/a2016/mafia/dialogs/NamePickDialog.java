@@ -17,9 +17,10 @@ import com.awds333.a2016.mafia.activities.client.ServerSerchActivity;
 
 
 public class NamePickDialog extends DialogFragment implements View.OnClickListener {
-    View dialog;
-    Activity context;
-    SharedPreferences sPreferences;
+    private View dialog;
+    private Activity context;
+    private SharedPreferences sPreferences;
+    private boolean image = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -28,9 +29,13 @@ public class NamePickDialog extends DialogFragment implements View.OnClickListen
         dialog.findViewById(R.id.canselbt).setOnClickListener(this);
         context = getActivity();
         sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
-        if(sPreferences.getBoolean("remember",false))
-            ((EditText)dialog.findViewById(R.id.text)).setText(sPreferences.getString("name",""));
+        if (sPreferences.getBoolean("remember", false))
+            ((EditText) dialog.findViewById(R.id.text)).setText(sPreferences.getString("name", ""));
         return dialog;
+    }
+
+    public void setImage() {
+        image = true;
     }
 
     @Override
@@ -40,7 +45,8 @@ public class NamePickDialog extends DialogFragment implements View.OnClickListen
             if (!s.replaceAll("\\s+", "").equals("")) {
                 Intent intent = new Intent(context, ServerSerchActivity.class);
                 intent.putExtra("name", s);
-                if(sPreferences.getBoolean("remember",false)) {
+                intent.putExtra("image",image);
+                if (sPreferences.getBoolean("remember", false)) {
                     SharedPreferences.Editor editor = sPreferences.edit();
                     editor.putString("name", s);
                     editor.commit();

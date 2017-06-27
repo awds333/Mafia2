@@ -5,6 +5,7 @@ import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
@@ -33,12 +34,13 @@ import com.awds333.a2016.mafia.netclasses.SocketForPlayer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -67,6 +69,7 @@ public class ServerSerchActivity extends Activity {
     FloatingActionButton floatingButton;
     boolean next;
     PasswordDialog passwordDialog;
+    byte[] imagebytes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -208,8 +211,8 @@ public class ServerSerchActivity extends Activity {
                 int ip = liveIp.get(0);
                 liveIp.remove(0);
                 Socket socket = new Socket();
-                PrintWriter out = null;
-                BufferedReader reader = null;
+                DataOutputStream out = null;
+                DataInputStream reader = null;
                 try {
                     socket.connect(new InetSocketAddress(ipTail + ip, PortsNumber.SERVER_GUEST_PORT), 4000);
                     while (socket.isConnected() == false) {
@@ -219,14 +222,12 @@ public class ServerSerchActivity extends Activity {
                             e.printStackTrace();
                         }
                     }
-                    reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    out = new PrintWriter(new BufferedWriter(
-                            new OutputStreamWriter(socket.getOutputStream())),
-                            true);
+                    reader = new DataInputStream(socket.getInputStream());
+                    out = new DataOutputStream(socket.getOutputStream());
                     JSONObject outmessage = new JSONObject();
                     outmessage.put("contyme", 1);
-                    out.println(outmessage.toString());
-                    JSONObject serverInfo = new JSONObject(reader.readLine());
+                    println(out,outmessage.toString());
+                    JSONObject serverInfo = new JSONObject(getLine(reader));
                     int people = serverInfo.getInt("peoplecount");
                     String servername = serverInfo.getString("servername");
                     int lock = 0;
@@ -243,7 +244,11 @@ public class ServerSerchActivity extends Activity {
                     e.printStackTrace();
                 } finally {
                     if (out != null)
-                        out.close();
+                        try {
+                            out.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     if (reader != null)
                         try {
                             reader.close();
@@ -292,8 +297,8 @@ public class ServerSerchActivity extends Activity {
                                 @Override
                                 public void run() {
                                     Socket socket = new Socket();
-                                    PrintWriter out = null;
-                                    BufferedReader reader = null;
+                                    DataOutputStream out = null;
+                                    DataInputStream reader = null;
                                     int port = -1;
                                     try {
                                         socket.connect(new InetSocketAddress(ipTail + connectionIp, PortsNumber.SERVER_GUEST_PORT), 4000);
@@ -304,18 +309,16 @@ public class ServerSerchActivity extends Activity {
                                                 e.printStackTrace();
                                             }
                                         }
-                                        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                        out = new PrintWriter(new BufferedWriter(
-                                                new OutputStreamWriter(socket.getOutputStream())),
-                                                true);
+                                        reader = new DataInputStream(socket.getInputStream());
+                                        out = new DataOutputStream(socket.getOutputStream());
                                         JSONObject outmessage = new JSONObject();
                                         try {
                                             outmessage.put("contyme", 2);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
-                                        out.println(outmessage.toString());
-                                        String sport = reader.readLine();
+                                        println(out,outmessage.toString());
+                                        String sport = getLine(reader);
                                         port = Integer.parseInt(sport);
                                         out.close();
                                         reader.close();
@@ -324,7 +327,11 @@ public class ServerSerchActivity extends Activity {
                                         e.printStackTrace();
                                     } finally {
                                         if (out != null)
-                                            out.close();
+                                            try {
+                                                out.close();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
                                         if (reader != null)
                                             try {
                                                 reader.close();
@@ -368,7 +375,14 @@ public class ServerSerchActivity extends Activity {
                                                 }
                                                 connectingRezult.sendEmptyMessage(-5);
                                             }
-                                            player.sendMessage(name);
+                                            JSONObject info = new JSONObject();
+                                            info.put("name",name);
+                                            if(imagebytes!= null){
+                                                info.put("hasImage",true);
+
+                                            } else
+                                                info.put("hasImage",false);
+                                            player.sendMessage(info.toString());
                                             connectingRezult.sendEmptyMessage(port);
                                         } catch (IOException e) {
                                             player.close();
@@ -444,6 +458,40 @@ public class ServerSerchActivity extends Activity {
         }
         ipTail = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
         pinger = new IpPinger(7, myIp, handler, 500);
+        if(getIntent().getBooleanExtra("image",false)) {
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    SharedPreferences sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
+                    File file = new File(sPreferences.getString("directory",null));
+                    int size = (int) file.length();
+                    imagebytes = new byte[size];
+                    try {
+                        BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+                        buf.read(imagebytes, 0, imagebytes.length);
+                        buf.close();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            t.start();
+        }
+    }
+
+    public String getLine(DataInputStream stream) throws IOException {
+        int length = stream.readInt();
+        byte[] data = new byte[length];
+        stream.readFully(data);
+        return  new String(data,"UTF-8");
+    }
+
+    public void println(DataOutputStream stream, String message) throws IOException {
+        byte bytes[] = message.getBytes("UTF-8");
+        stream.writeInt(bytes.length);
+        stream.write(bytes);
     }
 
     public boolean isApOn() {

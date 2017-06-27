@@ -44,6 +44,7 @@ public class MainActivity extends Activity {
     File directory;
     Handler handler;
     Bitmap image;
+    boolean hasimage;
     Activity context;
 
     @Override
@@ -60,19 +61,27 @@ public class MainActivity extends Activity {
         b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                view.setClickable(false);
                 saveImage();
                 //new server creating
                 servNameDialog = new ServNamePickDialog();
+                if (hasimage)
+                    ((ServNamePickDialog) servNameDialog).setImage();
                 servNameDialog.show(getFragmentManager(), "mytag");
+                view.setClickable(true);
             }
         });
         b2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                view.setClickable(false);
                 saveImage();
                 //locking for server
                 naimDialog = new NamePickDialog();
+                if (hasimage)
+                    ((NamePickDialog) naimDialog).setImage();
                 naimDialog.show(getFragmentManager(), "mytag");
+                view.setClickable(true);
             }
         });
         imBt.setOnClickListener(new View.OnClickListener() {
@@ -124,10 +133,12 @@ public class MainActivity extends Activity {
                         imBt.setBackgroundResource(android.R.drawable.btn_default);
                         imBt.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                         image = null;
+                        hasimage = false;
                     }
                 }
             }
         };
+        hasimage = false;
         SharedPreferences sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
         if (sPreferences.getBoolean("rememberImage", false)) {
             if (Build.VERSION.SDK_INT >= 23) {
@@ -151,29 +162,40 @@ public class MainActivity extends Activity {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), image);
             imBt.setImageBitmap(null);
             imBt.setBackground(bitmapDrawable);
+            image = null;
+            hasimage = true;
         }
     }
 
     public void saveImage() {
         if (image != null) {
-            SharedPreferences.Editor editor = getSharedPreferences("pref", MODE_PRIVATE).edit();
-            editor.putBoolean("rememberImage", true);
-            editor.commit();
-            OutputStream out = null;
-            try {
-                out = new FileOutputStream(new File(directory.getPath() + "/imageplayer.jpeg"));
-                image.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (out != null) {
-                        out.close();
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (Build.VERSION.SDK_INT >= 23)
+                        if (context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                            return;
+                    SharedPreferences.Editor editor = getSharedPreferences("pref", MODE_PRIVATE).edit();
+                    editor.putBoolean("rememberImage", true);
+                    editor.commit();
+                    OutputStream out = null;
+                    try {
+                        out = new FileOutputStream(new File(directory.getPath() + "/imageplayer.jpeg"));
+                        image.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            if (out != null) {
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-            }
+            });
+            thread.start();
         }
     }
 
@@ -206,6 +228,7 @@ public class MainActivity extends Activity {
                     cursor.close();
 
                     image = BitmapFactory.decodeFile(filePath);
+                    hasimage = true;
                 }
                 double height = image.getHeight();
                 double width = image.getWidth();
@@ -235,11 +258,16 @@ public class MainActivity extends Activity {
     }
 
     private void createDirectory() {
-        directory = new File(
-                Environment
-                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "MyFolder");
-        if (!directory.exists())
-            directory.mkdirs();
+        if(directory==null) {
+            directory = new File(
+                    Environment
+                            .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                    "MyFolder");
+            if (!directory.exists())
+                directory.mkdirs();
+            SharedPreferences.Editor editor = context.getSharedPreferences("pref", Context.MODE_PRIVATE).edit();
+            editor.putString("directory", directory.getPath() + "/imageplayer.jpeg");
+            editor.commit();
+        }
     }
 }

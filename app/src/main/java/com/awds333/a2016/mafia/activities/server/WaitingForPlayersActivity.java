@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,12 +32,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -44,6 +42,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
+
 
 public class WaitingForPlayersActivity extends Activity implements Observer {
     WifiManager wifiManager;
@@ -53,8 +52,8 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     WaitingForPlayersActivity context;
     boolean wait;
     RolePickDialog rolePick;
-    PrintWriter out;
-    BufferedReader reader;
+    DataOutputStream out;
+    DataInputStream reader;
     int peoplecount;
     String servername;
     SocketEngine engine;
@@ -178,7 +177,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
         view.setId(0);
-        ((TextView) view.findViewById(R.id.text)).setText(getIntent().getStringExtra("name"));
+        ((TextView) view.findViewById(R.id.name)).setText(getIntent().getStringExtra("name"));
         conteiner.addView(view, layoutParams);
         port = PortsNumber.SERVER_GUEST_PORT + 1;
         engine = SocketEngine.getSocketEngine();
@@ -196,19 +195,18 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 try {
                     guestSocket = new ServerSocket(PortsNumber.SERVER_GUEST_PORT);
                     socket = guestSocket.accept();
-                    reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    out = new PrintWriter(new BufferedWriter(
-                            new OutputStreamWriter(socket.getOutputStream())),
-                            true);
-                    JSONObject connectiontyme = new JSONObject(reader.readLine());
+                    reader = new DataInputStream(socket.getInputStream());
+                    out = new DataOutputStream(socket.getOutputStream());
+
+                    JSONObject connectiontyme = new JSONObject(getLine(reader));
                     if (connectiontyme.getInt("contyme") == 1) {
                         JSONObject anser = new JSONObject();
                         anser.put("peoplecount", peoplecount);
                         anser.put("servername", servername);
                         anser.put("lock", password != null);
-                        out.println(anser.toString());
+                        println(out,anser.toString());
                     } else {
-                        out.println(port);
+                        println(out,port+"");
                         engine.addChannel(port,password);
                         port++;
                     }
@@ -218,7 +216,11 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                     e.printStackTrace();
                 } finally {
                     if (out != null)
-                        out.close();
+                        try {
+                            out.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     if (reader != null)
                         try {
                             reader.close();
@@ -243,6 +245,19 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
             }
         });
         guestThread.start();
+    }
+
+    public String getLine(DataInputStream stream) throws IOException {
+        int length = stream.readInt();
+        byte[] data = new byte[length];
+        stream.readFully(data);
+        return  new String(data,"UTF-8");
+    }
+
+    public void println(DataOutputStream stream, String message) throws IOException {
+        byte bytes[] = message.getBytes("UTF-8");
+        stream.writeInt(bytes.length);
+        stream.write(bytes);
     }
 
     @Override
@@ -276,7 +291,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                     String type = object.getString("type");
                     if (type.equals("newChannel")) {
                         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
-                        ((TextView) view.findViewById(R.id.text)).setText(object.getString("name"));
+                        ((TextView) view.findViewById(R.id.name)).setText(object.getString("name"));
                         view.setId(object.getInt("id"));
                         conteiner.addView(view, layoutParams);
                         idPort.put(object.getInt("id"), object.getInt("port"));
@@ -285,9 +300,14 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         message.put("type", "newPlayer");
                         message.put("name", object.getString("name"));
                         message.put("id", object.getInt("id"));
+                        if(object.getBoolean("hasImage")){
+                            message.put("hasImage",true);
+                        } else
+                            message.put("hasImage",false);
                         engine.sendMessage(message.toString());
                         rolePick.newPlayer();
                         peoplecount++;
+                        Log.d("awdsawds",peoplecount+"");
                         if(!engine.isPinging());
 //                            engine.startPing();
                     } else if (type.equals("message")) {
@@ -317,6 +337,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         idPort.remove(object.getInt("id"));
                         rolePick.byePlayer();
                         peoplecount--;
+                        Log.d("awdsawds",peoplecount+"");
                         if (peoplecount==1)
                             engine.stopPing();
                     }
