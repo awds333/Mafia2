@@ -383,6 +383,9 @@ public class ServerSerchActivity extends Activity {
                                             } else
                                                 info.put("hasImage",false);
                                             player.sendMessage(info.toString());
+                                            if(imagebytes!= null) {
+                                                player.sendByteMessage(imagebytes);
+                                            }
                                             connectingRezult.sendEmptyMessage(port);
                                         } catch (IOException e) {
                                             player.close();

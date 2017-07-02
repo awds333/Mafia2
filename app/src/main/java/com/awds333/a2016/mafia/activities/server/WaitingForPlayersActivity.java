@@ -4,9 +4,13 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,8 +37,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
@@ -66,6 +75,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     LinearLayout.LayoutParams layoutParams;
     HashMap<Integer, String> idName;
     HashMap<Integer, Integer> idPort;
+    HashMap<Integer, byte[]> idImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +136,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
     private void startWaiting() {
         idName = new HashMap<Integer, String>();
         idPort = new HashMap<Integer, Integer>();
+        idImage = new HashMap<Integer, byte[]>();
         idName.put(0, getIntent().getStringExtra("name"));
         password = getIntent().getStringExtra("lock");
         next = false;
@@ -141,11 +152,11 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
             public void onClick(View v) {
                 if (peoplecount >= 4) {
                     Intent intent = new Intent(context, PlayActivity.class);
-                    intent.putExtra("type",1);
-                    intent.putExtra("mafia",rolePick.getMafias());
-                    intent.putExtra("doctor",rolePick.isDoctor());
-                    intent.putExtra("detective",rolePick.isDetective());
-                    intent.putExtra("name",getIntent().getStringExtra("name"));
+                    intent.putExtra("type", 1);
+                    intent.putExtra("mafia", rolePick.getMafias());
+                    intent.putExtra("doctor", rolePick.isDoctor());
+                    intent.putExtra("detective", rolePick.isDetective());
+                    intent.putExtra("name", getIntent().getStringExtra("name"));
                     wait = false;
                     try {
                         guestSocket.close();
@@ -177,6 +188,42 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         View view = LayoutInflater.from(context).inflate(R.layout.player_list_element, null);
         view.setId(0);
+        if (getIntent().getBooleanExtra("image", false)) {
+            AsyncTask<Integer, Bitmap, Bitmap> myImage = new AsyncTask<Integer, Bitmap, Bitmap>() {
+
+                @Override
+                protected Bitmap doInBackground(Integer... params) {
+                    SharedPreferences sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
+                    File file = new File(sPreferences.getString("directory", null));
+                    int size = (int) file.length();
+                    byte imagebytes[] = new byte[size];
+                    try {
+                        BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+                        buf.read(imagebytes, 0, imagebytes.length);
+                        buf.close();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (imagebytes != null) {
+                        idImage.put(0, imagebytes);
+                        Bitmap bmp = BitmapFactory.decodeByteArray(imagebytes, 0, imagebytes.length);
+                        return bmp.copy(Bitmap.Config.ARGB_8888, true);
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Bitmap bitmap) {
+                    View view1 = conteiner.findViewById(0);
+                    if (view1 != null) {
+                        ((ImageView) view1.findViewById(R.id.image)).setImageBitmap(bitmap);
+                    }
+                }
+            };
+            myImage.execute(0);
+        }
         ((TextView) view.findViewById(R.id.name)).setText(getIntent().getStringExtra("name"));
         conteiner.addView(view, layoutParams);
         port = PortsNumber.SERVER_GUEST_PORT + 1;
@@ -204,10 +251,10 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         anser.put("peoplecount", peoplecount);
                         anser.put("servername", servername);
                         anser.put("lock", password != null);
-                        println(out,anser.toString());
+                        println(out, anser.toString());
                     } else {
-                        println(out,port+"");
-                        engine.addChannel(port,password);
+                        println(out, port + "");
+                        engine.addChannel(port, password);
                         port++;
                     }
                 } catch (IOException e) {
@@ -245,13 +292,14 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
             }
         });
         guestThread.start();
+
     }
 
     public String getLine(DataInputStream stream) throws IOException {
         int length = stream.readInt();
         byte[] data = new byte[length];
         stream.readFully(data);
-        return  new String(data,"UTF-8");
+        return new String(data, "UTF-8");
     }
 
     public void println(DataOutputStream stream, String message) throws IOException {
@@ -300,15 +348,15 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         message.put("type", "newPlayer");
                         message.put("name", object.getString("name"));
                         message.put("id", object.getInt("id"));
-                        if(object.getBoolean("hasImage")){
-                            message.put("hasImage",true);
+                        if (object.getBoolean("hasImage")) {
+                            message.put("hasImage", true);
                         } else
-                            message.put("hasImage",false);
+                            message.put("hasImage", false);
                         engine.sendMessage(message.toString());
                         rolePick.newPlayer();
                         peoplecount++;
-                        Log.d("awdsawds",peoplecount+"");
-                        if(!engine.isPinging());
+                        Log.d("awdsawds", peoplecount + "");
+                        if (!engine.isPinging()) ;
 //                            engine.startPing();
                     } else if (type.equals("message")) {
                         JSONObject message = new JSONObject(object.getString("message"));
@@ -321,6 +369,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                                 int idi = ids.next();
                                 ob.put("id", idi);
                                 ob.put("name", idName.get(idi));
+                                ob.put("hasImage", idImage.get(idi) != null);
                                 array.put(ob);
                             }
                             answer.put("PlayList", array);
@@ -329,17 +378,46 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                             answer.put("name", idName.get(object.getInt("id")));
                             answer.put("type", "fornew");
                             engine.sendMessageById(answer.toString(), object.getInt("id"));
+                            Iterator<Integer> idsimg = idImage.keySet().iterator();
+                            while (idsimg.hasNext()) {
+                                int id = idsimg.next();
+                                engine.sendMessageById(id+"",object.getInt("id"));
+                                engine.sendByteMessageById(idImage.get(id), object.getInt("id"));
+                            }
                         }
                     } else if (type.equals("connectionfail")) {
                         engine.sendMessage(object.toString());
                         conteiner.removeView(conteiner.findViewById(object.getInt("id")));
                         idName.remove(object.getInt("id"));
                         idPort.remove(object.getInt("id"));
+                        idImage.remove(object.getInt("id"));
                         rolePick.byePlayer();
                         peoplecount--;
-                        Log.d("awdsawds",peoplecount+"");
-                        if (peoplecount==1)
+                        Log.d("awdsawds", peoplecount + "");
+                        if (peoplecount == 1)
                             engine.stopPing();
+                    } else if (type.equals("image")) {
+                        AsyncTask<Integer, Bitmap, Bitmap> imageSet = new AsyncTask<Integer, Bitmap, Bitmap>() {
+                            int id;
+
+                            @Override
+                            protected Bitmap doInBackground(Integer... params) {
+                                byte[] imageBytes = engine.getContentById(params[0]);
+                                id = params[0];
+                                idImage.put(id, imageBytes);
+                                Bitmap bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                                return bmp.copy(Bitmap.Config.ARGB_8888, true);
+                            }
+
+                            @Override
+                            protected void onPostExecute(Bitmap bitmap) {
+                                View view1 = conteiner.findViewById(id);
+                                if (view1 != null) {
+                                    ((ImageView) view1.findViewById(R.id.image)).setImageBitmap(bitmap);
+                                }
+                            }
+                        };
+                        imageSet.execute(object.getInt("id"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -33,8 +32,10 @@ import com.awds333.a2016.mafia.dialogs.NamePickDialog;
 import com.awds333.a2016.mafia.dialogs.ServNamePickDialog;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class MainActivity extends Activity {
@@ -62,7 +63,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 view.setClickable(false);
-                saveImage();
                 //new server creating
                 servNameDialog = new ServNamePickDialog();
                 if (hasimage)
@@ -75,7 +75,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 view.setClickable(false);
-                saveImage();
                 //locking for server
                 naimDialog = new NamePickDialog();
                 if (hasimage)
@@ -128,7 +127,7 @@ public class MainActivity extends Activity {
                     }
                 } else if (msg.what == 3) {
                     imageDialog.dismiss();
-                    if (image != null) {
+                    if (hasimage) {
                         imBt.setImageResource(android.R.drawable.ic_menu_camera);
                         imBt.setBackgroundResource(android.R.drawable.btn_default);
                         imBt.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -179,15 +178,26 @@ public class MainActivity extends Activity {
                     editor.putBoolean("rememberImage", true);
                     editor.commit();
                     OutputStream out = null;
+                    OutputStream out256 = null;
                     try {
                         out = new FileOutputStream(new File(directory.getPath() + "/imageplayer.jpeg"));
                         image.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                        out256 = new FileOutputStream(new File(directory.getPath() + "/imageplayer256.jpeg"));
+                        Bitmap.createScaledBitmap(image, 256, 256, false).compress(Bitmap.CompressFormat.JPEG, 100, out256);
+                        image = null;
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
                         try {
                             if (out != null) {
                                 out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            if (out256 != null) {
+                                out256.close();
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -212,11 +222,12 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == 1 || requestCode == 2) {
             if (resultCode == RESULT_OK) {
+                Bitmap imagev1 = null;
                 if (requestCode == 1) {
                     Object obj = intent.getExtras().get("data");
-                    image = (Bitmap) obj;
+                    imagev1 = (Bitmap) obj;
                 } else {
-                    Uri selectedImage = intent.getData();
+                    /*Uri selectedImage = intent.getData();
                     String[] filePathColumn = {MediaStore.Images.Media.DATA};
 
                     Cursor cursor = getContentResolver().query(
@@ -226,25 +237,31 @@ public class MainActivity extends Activity {
                     int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
                     String filePath = cursor.getString(columnIndex);
                     cursor.close();
-
-                    image = BitmapFactory.decodeFile(filePath);
-                    hasimage = true;
+                    image = BitmapFactory.decodeFile(filePath);*/
+                    try {
+                        Uri imageUri = intent.getData();
+                        InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                        imagev1 = BitmapFactory.decodeStream(imageStream);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
                 }
-                double height = image.getHeight();
-                double width = image.getWidth();
-                double ot = height / width;
-                Log.d("awdsawds", image.getWidth() + " " + image.getHeight());
-                if (ot > 1.0)
-                    image = Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getWidth());
-                else
-                    image = Bitmap.createBitmap(image, 0, 0, image.getHeight(), image.getHeight());
-                Log.d("awdsawds", ot + "");
-                Log.d("awdsawds", image.getHeight() + " " + image.getWidth());
-                imBt.setLayoutParams(new LinearLayout.LayoutParams(360, 360));
-                Log.d("awdsawds", imBt.getHeight() + " " + imBt.getWidth());
-                BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), image);
-                imBt.setImageBitmap(null);
-                imBt.setBackground(bitmapDrawable);
+                if (imagev1 != null) {
+                    hasimage = true;
+                    double height = imagev1.getHeight();
+                    double width = imagev1.getWidth();
+                    double ot = height / width;
+                    Log.d("awdsawds", imagev1.getWidth() + " " + imagev1.getHeight());
+                    if (ot > 1.0)
+                        image = Bitmap.createBitmap(imagev1, 0, 0, imagev1.getWidth(), imagev1.getWidth());
+                    else
+                        image = Bitmap.createBitmap(imagev1, 0, 0, imagev1.getHeight(), imagev1.getHeight());
+                    imBt.setLayoutParams(new LinearLayout.LayoutParams(360, 360));
+                    BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), image);
+                    saveImage();
+                    imBt.setImageBitmap(null);
+                    imBt.setBackground(bitmapDrawable);
+                }
             } else if (resultCode == RESULT_CANCELED) {
 
             }
@@ -258,7 +275,7 @@ public class MainActivity extends Activity {
     }
 
     private void createDirectory() {
-        if(directory==null) {
+        if (directory == null) {
             directory = new File(
                     Environment
                             .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
@@ -266,7 +283,7 @@ public class MainActivity extends Activity {
             if (!directory.exists())
                 directory.mkdirs();
             SharedPreferences.Editor editor = context.getSharedPreferences("pref", Context.MODE_PRIVATE).edit();
-            editor.putString("directory", directory.getPath() + "/imageplayer.jpeg");
+            editor.putString("directory", directory.getPath() + "/imageplayer256.jpeg");
             editor.commit();
         }
     }

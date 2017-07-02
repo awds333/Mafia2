@@ -7,6 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class SocketForPlayer {
 
@@ -15,6 +16,9 @@ public class SocketForPlayer {
     private Socket socket;
     private DataInputStream reader;
     private DataOutputStream out;
+    private Thread mesThread;
+    private ArrayList<byte[]> messageQueue;
+    private boolean active;
 
     private SocketForPlayer() {
     }
@@ -31,12 +35,40 @@ public class SocketForPlayer {
 
     public void setSocket(Socket socket) {
         this.socket = socket;
+        messageQueue = new ArrayList<byte[]>();
+        active = true;
         try {
             reader = new DataInputStream(this.socket.getInputStream());
             out = new DataOutputStream(this.socket.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        mesThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (active) {
+                    if (messageQueue.size() > 0) {
+                        byte[] bytes = messageQueue.get(0);
+                        messageQueue.remove(0);
+                        try {
+                            out.writeInt(bytes.length);
+                            out.write(bytes);
+                        } catch (IOException e) {
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e1) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        mesThread.start();
     }
 
     public void sendMessage(String message) {
@@ -48,8 +80,7 @@ public class SocketForPlayer {
     }
 
     public void sendByteMessage(byte[] bytes) throws IOException {
-        out.writeInt(bytes.length);
-        out.write(bytes);
+        messageQueue.add(bytes);
     }
 
     public String getMessage() throws IOException {
@@ -67,6 +98,7 @@ public class SocketForPlayer {
     }
 
     public void close() {
+        active = false;
         if (out != null) {
             try {
                 out.close();

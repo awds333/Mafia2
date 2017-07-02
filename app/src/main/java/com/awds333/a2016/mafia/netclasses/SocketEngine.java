@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Observable;
 
 
@@ -16,14 +17,15 @@ public class SocketEngine extends Observable {
     private static SocketEngine socketEngine;
     private ArrayList<PlayerChannel> channels;
     private ArrayList<ServerSocket> serverSockets;
-    private int mport, channelId, killId, msId;
-    private String mmessage, mmessageId, password;
-    private Thread ping;
+    private int mport, channelId, killId;
+    private String mmessage, password;
     private boolean pinging;
+    private HashMap<Integer,byte[]> content;
 
     private SocketEngine() {
         channels = new ArrayList<PlayerChannel>();
         serverSockets = new ArrayList<>();
+        content = new HashMap<Integer, byte[]>();
         channelId = 1;
     }
 
@@ -73,6 +75,15 @@ public class SocketEngine extends Observable {
                                 channel.unlock();
                                 socketEngine.setChanged();
                                 notifyObservers(newInfo);
+                                if (newInfo.getBoolean("hasImage")) {
+                                    byte image[] = channel.getByteMessage();
+                                    content.put(channel.getId(),image);
+                                    JSONObject imJs = new JSONObject();
+                                    imJs.put("type","image");
+                                    imJs.put("id",channel.getId());
+                                    socketEngine.setChanged();
+                                    notifyObservers(imJs);
+                                }
                                 while (true) {
                                     String message = channel.getMessage();
                                     JSONObject object = new JSONObject();
@@ -118,6 +129,12 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
+    public byte[] getContentById(int id){
+        byte answer[] = content.get(id);
+        content.remove(id);
+        return answer;
+    }
+
     public void closeServerSockets() {
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -148,7 +165,6 @@ public class SocketEngine extends Observable {
                             if (channels.get(i).getId() == id) {
                                 channels.get(i).close();
                                 channels.remove(i);
-                                //channels.remove(channels.get(i));
                                 break;
                             }
                     }
@@ -161,7 +177,6 @@ public class SocketEngine extends Observable {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                int id = killId;
                 if (channels != null)
                     for (int i = 0; i < channels.size(); i++) {
                         if (channels.get(i) != null)
@@ -192,41 +207,21 @@ public class SocketEngine extends Observable {
                 break;
             }
         }
-
-
     }
 
-    public void startPing() {
-        if (ping == null) {
-            ping = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (pinging)
-                        for (int i = 0; i < channels.size(); i++) {
-                            try {
-                                if (!channels.get(i).getAddress().isReachable(1000)) {
-                                    killChannelById(channels.get(i).getId());
-                                    Thread.sleep(1000);
-                                }
-                            } catch (IOException e) {
-                                killChannelById(channels.get(i).getId());
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException e1) {
-                                    e1.printStackTrace();
-                                }
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            if (!pinging)
-                                break;
-                        }
+    public void sendByteMessageById(byte message[], int id) {
+        for (PlayerChannel channel : channels) {
+            if (channel.getId() == id) {
+                try {
+                    channel.sendByteMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
+                break;
+            }
         }
-        pinging = true;
-        if (!ping.isAlive())
-            ping.start();
+
+
     }
 
     public void stopPing() {

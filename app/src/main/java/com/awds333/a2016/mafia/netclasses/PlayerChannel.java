@@ -3,26 +3,22 @@ package com.awds333.a2016.mafia.netclasses;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class PlayerChannel {
-    private Thread thread;
+    private Thread thread,mesThread;
     private Socket socket;
     private DataOutputStream out;
     private DataInputStream reader;
     private int id;
     private int port;
-    private InetAddress address;
     private String password;
-    private boolean lock;
+    private boolean lock, active;
+    private ArrayList<byte[]> messageQueue;
 
     public String getPassword() {
         return password;
-    }
-
-    public InetAddress getAddress() {
-        return address;
     }
 
     public void unlock(){
@@ -33,14 +29,15 @@ public class PlayerChannel {
         return lock;
     }
 
-    public PlayerChannel(Thread thread, Socket socket, int id, int port, String pass) {
+    public PlayerChannel(Thread thread, final Socket socket, int id, int port, String pass) {
         this.thread = thread;
         this.socket = socket;
         this.id = id;
         this.port = port;
         lock = true;
+        active = true;
         password = pass;
-        address=socket.getInetAddress();
+        messageQueue = new ArrayList<byte[]>();
 
         try {
             reader = new DataInputStream(this.socket.getInputStream());
@@ -48,6 +45,32 @@ public class PlayerChannel {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        mesThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (active) {
+                    if (messageQueue.size() > 0) {
+                        byte[] bytes = messageQueue.get(0);
+                        messageQueue.remove(0);
+                        try {
+                            out.writeInt(bytes.length);
+                            out.write(bytes);
+                        } catch (IOException e) {
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e1) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        mesThread.start();
     }
 
     public void sendMessage(String message) {
@@ -58,8 +81,7 @@ public class PlayerChannel {
     }
 
     public void sendByteMessage(byte[] bytes) throws IOException {
-        out.writeInt(bytes.length);
-        out.write(bytes);
+        messageQueue.add(bytes);
     }
 
     public String getMessage() throws IOException {
@@ -76,6 +98,7 @@ public class PlayerChannel {
     }
 
     public void close() {
+        active = false;
         if (out != null) {
             try {
                 out.close();
