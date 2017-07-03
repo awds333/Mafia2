@@ -41,14 +41,14 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
         pasLayout = ((LinearLayout) dialog.findViewById(conteiner));
         context = getActivity();
         sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
-        if(sPreferences.getBoolean("remember",false)){
-            ((EditText)dialog.findViewById(R.id.text)).setText(sPreferences.getString("name",""));
-            ((EditText)dialog.findViewById(R.id.sname)).setText(sPreferences.getString("sname",""));
+        if (sPreferences.getBoolean("remember", false)) {
+            ((EditText) dialog.findViewById(R.id.text)).setText(sPreferences.getString("name", ""));
+            ((EditText) dialog.findViewById(R.id.sname)).setText(sPreferences.getString("sname", ""));
         }
         return dialog;
     }
 
-    public void setImage(){
+    public void setImage() {
         image = true;
     }
 
@@ -62,14 +62,15 @@ public class ServNamePickDialog extends DialogFragment implements View.OnClickLi
                     Intent intent = new Intent(context, WaitingForPlayersActivity.class);
                     intent.putExtra("name", name);
                     intent.putExtra("servername", servname);
-                    intent.putExtra("image",image);
-                    if(password!=null) {
-                        intent.putExtra("lock", password.getText().toString());
+                    intent.putExtra("image", image);
+                    if (password != null) {
+                        if (!password.getText().toString().equals(""))
+                            intent.putExtra("lock", password.getText().toString());
                     }
-                    if(sPreferences.getBoolean("remember",false)){
+                    if (sPreferences.getBoolean("remember", false)) {
                         SharedPreferences.Editor editor = sPreferences.edit();
-                        editor.putString("name",name);
-                        editor.putString("sname",servname);
+                        editor.putString("name", name);
+                        editor.putString("sname", servname);
                         editor.commit();
                     }
                     context.startActivity(intent);

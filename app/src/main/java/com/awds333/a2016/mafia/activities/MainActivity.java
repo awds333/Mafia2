@@ -227,17 +227,6 @@ public class MainActivity extends Activity {
                     Object obj = intent.getExtras().get("data");
                     imagev1 = (Bitmap) obj;
                 } else {
-                    /*Uri selectedImage = intent.getData();
-                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
-
-                    Cursor cursor = getContentResolver().query(
-                            selectedImage, filePathColumn, null, null, null);
-                    cursor.moveToFirst();
-
-                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                    String filePath = cursor.getString(columnIndex);
-                    cursor.close();
-                    image = BitmapFactory.decodeFile(filePath);*/
                     try {
                         Uri imageUri = intent.getData();
                         InputStream imageStream = getContentResolver().openInputStream(imageUri);

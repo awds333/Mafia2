@@ -1,14 +1,17 @@
 package com.awds333.a2016.mafia.activities.client;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -226,7 +229,7 @@ public class ServerSerchActivity extends Activity {
                     out = new DataOutputStream(socket.getOutputStream());
                     JSONObject outmessage = new JSONObject();
                     outmessage.put("contyme", 1);
-                    println(out,outmessage.toString());
+                    println(out, outmessage.toString());
                     JSONObject serverInfo = new JSONObject(getLine(reader));
                     int people = serverInfo.getInt("peoplecount");
                     String servername = serverInfo.getString("servername");
@@ -317,7 +320,7 @@ public class ServerSerchActivity extends Activity {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
-                                        println(out,outmessage.toString());
+                                        println(out, outmessage.toString());
                                         String sport = getLine(reader);
                                         port = Integer.parseInt(sport);
                                         out.close();
@@ -376,14 +379,14 @@ public class ServerSerchActivity extends Activity {
                                                 connectingRezult.sendEmptyMessage(-5);
                                             }
                                             JSONObject info = new JSONObject();
-                                            info.put("name",name);
-                                            if(imagebytes!= null){
-                                                info.put("hasImage",true);
+                                            info.put("name", name);
+                                            if (imagebytes != null) {
+                                                info.put("hasImage", true);
 
                                             } else
-                                                info.put("hasImage",false);
+                                                info.put("hasImage", false);
                                             player.sendMessage(info.toString());
-                                            if(imagebytes!= null) {
+                                            if (imagebytes != null) {
                                                 player.sendByteMessage(imagebytes);
                                             }
                                             connectingRezult.sendEmptyMessage(port);
@@ -411,8 +414,8 @@ public class ServerSerchActivity extends Activity {
                 dialog.dismiss();
                 if (msg.what == -1) {
                     Toast.makeText(context, R.string.cooner, Toast.LENGTH_LONG).show();
-                    if(passwordDialog!=null)
-                    passwordDialog.dismiss();
+                    if (passwordDialog != null)
+                        passwordDialog.dismiss();
                 } else if (msg.what == -2) {
                     Toast.makeText(context, R.string.gamews, Toast.LENGTH_LONG).show();
                 } else if (msg.what == -3) {
@@ -461,12 +464,16 @@ public class ServerSerchActivity extends Activity {
         }
         ipTail = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
         pinger = new IpPinger(7, myIp, handler, 500);
-        if(getIntent().getBooleanExtra("image",false)) {
+        if (getIntent().getBooleanExtra("image", false)) {
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                            return;
+                    }
                     SharedPreferences sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
-                    File file = new File(sPreferences.getString("directory",null));
+                    File file = new File(sPreferences.getString("directory", null));
                     int size = (int) file.length();
                     imagebytes = new byte[size];
                     try {
@@ -488,7 +495,7 @@ public class ServerSerchActivity extends Activity {
         int length = stream.readInt();
         byte[] data = new byte[length];
         stream.readFully(data);
-        return  new String(data,"UTF-8");
+        return new String(data, "UTF-8");
     }
 
     public void println(DataOutputStream stream, String message) throws IOException {

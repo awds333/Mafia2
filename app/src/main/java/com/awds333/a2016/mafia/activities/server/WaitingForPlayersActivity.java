@@ -1,16 +1,19 @@
 package com.awds333.a2016.mafia.activities.server;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -193,6 +196,10 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
 
                 @Override
                 protected Bitmap doInBackground(Integer... params) {
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                            return null;
+                    }
                     SharedPreferences sPreferences = context.getSharedPreferences("pref", Context.MODE_PRIVATE);
                     File file = new File(sPreferences.getString("directory", null));
                     int size = (int) file.length();
@@ -217,7 +224,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 @Override
                 protected void onPostExecute(Bitmap bitmap) {
                     View view1 = conteiner.findViewById(0);
-                    if (view1 != null) {
+                    if (view1 != null&& bitmap!=null) {
                         ((ImageView) view1.findViewById(R.id.image)).setImageBitmap(bitmap);
                     }
                 }
