@@ -53,6 +53,7 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
         context = this;
         next = false;
         listen = true;
+        imageIds = new ArrayList<Integer>();
         conteiner = (LinearLayout) findViewById(R.id.conteiner);
         idImagesBytes = new HashMap<Integer, byte[]>();
         ((Button) findViewById(R.id.backbt)).setOnClickListener(new View.OnClickListener() {
@@ -85,7 +86,6 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                                     break;
                             }
                             JSONArray array = plList.getJSONArray("PlayList");
-                            imageIds = new ArrayList<Integer>();
                             mId = plList.getInt("id");
                             mName = plList.getString("name");
                             idName = new HashMap<Integer, String>();
@@ -121,6 +121,15 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                                     JSONObject ob = new JSONObject(mess);
                                     if (ob.getString("type").equals("gamestart"))
                                         listen = false;
+                                    else if(ob.getString("type").equals("image")) {
+                                        int id = ob.getInt("id");
+                                        byte imageBytes[] = player.getByteMessage();
+                                        idImagesBytes.put(id, imageBytes);
+                                        Bitmap bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                                        Message message = start.obtainMessage(4, id, 0, bmp.copy(Bitmap.Config.ARGB_8888, true));
+                                        start.obtainMessage();
+                                        start.sendMessage(message);
+                                    }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -178,6 +187,7 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                         } else if (type.equals("connectionfail")) {
                             conteiner.removeView(conteiner.findViewById(object.getInt("id")));
                             idName.remove(object.getInt("id"));
+                            idImagesBytes.remove(object.getInt("id"));
                         } else if (type.equals("gamestart")) {
                             JSONObject message = new JSONObject();
                             message.put("type", "name");

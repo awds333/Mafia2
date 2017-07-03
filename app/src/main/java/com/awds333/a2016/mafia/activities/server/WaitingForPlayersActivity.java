@@ -413,6 +413,15 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                                 id = params[0];
                                 idImage.put(id, imageBytes);
                                 Bitmap bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                                JSONObject object1 = new JSONObject();
+                                try {
+                                    object1.put("type","image");
+                                    object1.put("id",id);
+                                    engine.sendMessage(object1.toString(),id);
+                                    engine.sendByteMessage(imageBytes,id);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                                 return bmp.copy(Bitmap.Config.ARGB_8888, true);
                             }
 

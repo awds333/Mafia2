@@ -20,7 +20,7 @@ public class SocketEngine extends Observable {
     private int mport, channelId, killId;
     private String mmessage, password;
     private boolean pinging;
-    private HashMap<Integer,byte[]> content;
+    private HashMap<Integer, byte[]> content;
 
     private SocketEngine() {
         channels = new ArrayList<PlayerChannel>();
@@ -77,10 +77,10 @@ public class SocketEngine extends Observable {
                                 notifyObservers(newInfo);
                                 if (newInfo.getBoolean("hasImage")) {
                                     byte image[] = channel.getByteMessage();
-                                    content.put(channel.getId(),image);
+                                    content.put(channel.getId(), image);
                                     JSONObject imJs = new JSONObject();
-                                    imJs.put("type","image");
-                                    imJs.put("id",channel.getId());
+                                    imJs.put("type", "image");
+                                    imJs.put("id", channel.getId());
                                     socketEngine.setChanged();
                                     notifyObservers(imJs);
                                 }
@@ -112,7 +112,7 @@ public class SocketEngine extends Observable {
                                     e.printStackTrace();
                                 }
                             }
-                            Log.d("awdsawds",channel.getId()+" died");
+                            Log.d("awdsawds", channel.getId() + " died");
                             killChannelById(channel.getId());
                         }
                     });
@@ -129,7 +129,7 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
-    public byte[] getContentById(int id){
+    public byte[] getContentById(int id) {
         byte answer[] = content.get(id);
         content.remove(id);
         return answer;
@@ -191,16 +191,43 @@ public class SocketEngine extends Observable {
     }
 
     public void sendMessage(String message) {
-        mmessage = message;
-        String mes = mmessage;
         for (PlayerChannel channel : channels) {
             if (!channel.isLock())
-                channel.sendMessage(mes);
+                channel.sendMessage(message);
+        }
+    }
+
+    public void sendMessage(String message, int pasid) {
+        for (PlayerChannel channel : channels) {
+            if (!channel.isLock() && channel.getId() != pasid)
+                channel.sendMessage(message);
+        }
+    }
+
+    public void sendByteMessage(byte message[]) {
+        for (PlayerChannel channel : channels) {
+            if (!channel.isLock())
+                try {
+                    channel.sendByteMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
+    }
+
+    public void sendByteMessage(byte message[], int pasid) {
+        for (PlayerChannel channel : channels) {
+            if (!channel.isLock() && channel.getId() != pasid)
+                try {
+                    channel.sendByteMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         }
     }
 
     public void sendMessageById(String message, int id) {
-        Log.d("awdsawds",message+"  to id: "+id);
+        Log.d("awdsawds", message + "  to id: " + id);
         for (PlayerChannel channel : channels) {
             if (channel.getId() == id) {
                 channel.sendMessage(message);
