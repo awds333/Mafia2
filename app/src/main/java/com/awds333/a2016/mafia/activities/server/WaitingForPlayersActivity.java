@@ -160,6 +160,11 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                     intent.putExtra("doctor", rolePick.isDoctor());
                     intent.putExtra("detective", rolePick.isDetective());
                     intent.putExtra("name", getIntent().getStringExtra("name"));
+                    Iterator<Integer> iterator = idImage.keySet().iterator();
+                    while (iterator.hasNext()){
+                        int id = iterator.next();
+                        intent.putExtra("image"+id,idImage.get(id));
+                    }
                     wait = false;
                     try {
                         guestSocket.close();

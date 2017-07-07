@@ -198,6 +198,11 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                             intent.putExtra("id", mId);
                             intent.putExtra("type", 2);
                             intent.putExtra("name", mName);
+                            Iterator<Integer> iterator = idImagesBytes.keySet().iterator();
+                            while (iterator.hasNext()){
+                                int id = iterator.next();
+                                intent.putExtra("image"+id,idImagesBytes.get(id));
+                            }
                             startActivity(intent);
                             finish();
                         }

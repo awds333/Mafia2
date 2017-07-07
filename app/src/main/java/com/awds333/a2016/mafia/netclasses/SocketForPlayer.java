@@ -1,6 +1,7 @@
 package com.awds333.a2016.mafia.netclasses;
 
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.DataInputStream;
@@ -16,7 +17,7 @@ public class SocketForPlayer {
     private Socket socket;
     private DataInputStream reader;
     private DataOutputStream out;
-    private Thread mesThread;
+    private Thread mesThread,pingThread;
     private ArrayList<byte[]> messageQueue;
     private boolean active;
 
@@ -47,12 +48,11 @@ public class SocketForPlayer {
             @Override
             public void run() {
                 while (active) {
-                    if (messageQueue.size() > 0) {
-                        byte[] bytes = messageQueue.get(0);
-                        messageQueue.remove(0);
+                    byte[] message = addReadeMessage(null);
+                    if (message != null) {
                         try {
-                            out.writeInt(bytes.length);
-                            out.write(bytes);
+                            out.writeInt(message.length);
+                            out.write(message);
                         } catch (IOException e) {
                             try {
                                 Thread.sleep(100);
@@ -69,6 +69,20 @@ public class SocketForPlayer {
             }
         });
         mesThread.start();
+        pingThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (active){
+                    sendMessage("ping");
+                    try {
+                        Thread.sleep(1500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        pingThread.start();
     }
 
     public void sendMessage(String message) {
@@ -80,7 +94,21 @@ public class SocketForPlayer {
     }
 
     public void sendByteMessage(byte[] bytes) throws IOException {
-        messageQueue.add(bytes);
+        addReadeMessage(bytes);
+    }
+
+    private synchronized byte[] addReadeMessage(@Nullable byte[] bytes){
+        if(bytes!=null){
+            messageQueue.add(bytes);
+            return null;
+        } else {
+            if(messageQueue.size()>0){
+                byte[] retBytes = messageQueue.get(0);
+                messageQueue.remove(0);
+                return retBytes;
+            }
+            return null;
+        }
     }
 
     public String getMessage() throws IOException {
