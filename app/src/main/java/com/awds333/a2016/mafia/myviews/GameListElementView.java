@@ -21,6 +21,7 @@ public class GameListElementView {
         ((Button) view.findViewById(R.id.choose)).setId(id);
         count = 0;
         ((TextView) view.findViewById(R.id.count)).setText(count + "");
+        view.setId(id+1000);
         this.id = id;
     }
 

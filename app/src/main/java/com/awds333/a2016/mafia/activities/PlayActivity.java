@@ -1,7 +1,10 @@
 package com.awds333.a2016.mafia.activities;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -177,8 +180,10 @@ public class PlayActivity extends Activity implements Observer {
         params.setMargins(0, 16, 0, 0);
         players = new ArrayList<GameListElementView>();
         Iterator<Integer> ids = idName.keySet().iterator();
+        ArrayList<Integer> intIds = new ArrayList<Integer>();
         while (ids.hasNext()) {
             int id = ids.next();
+            intIds.add(id);
             if (id != myId) {
                 GameListElementView view = new GameListElementView(this, idName.get(id), id, new View.OnClickListener() {
                     @Override
@@ -190,6 +195,29 @@ public class PlayActivity extends Activity implements Observer {
                 container.addView(view.getView(), params);
             }
         }
+        AsyncTask<ArrayList<Integer>,Bitmap,Bitmap> setImages = new AsyncTask<ArrayList<Integer>, Bitmap, Bitmap>() {
+            int id;
+            @Override
+            protected Bitmap doInBackground(ArrayList<Integer>... params) {
+                for(int i =0;i<params[0].size();i++){
+                    byte imageBytes[] = getIntent().getByteArrayExtra("image"+params[0].get(i));
+                    if(imageBytes!=null){
+                        Bitmap bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                        id = params[0].get(i);
+                        publishProgress(bmp.copy(Bitmap.Config.ARGB_8888, true));
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onProgressUpdate(Bitmap... values) {
+                View view = findViewById(id+1000);
+                if(view!=null){
+                    ((ImageView)view.findViewById(R.id.image)).setImageBitmap(values[0]);
+                }
+            }
+        }.execute(intIds);
     }
 
     @Override
