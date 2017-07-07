@@ -12,20 +12,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/newserver"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="11dp"
         app:layout_constraintTop_toBottomOf="@+id/findeserv"
-        app:layout_constraintLeft_toLeftOf="@+id/findeserv" />
+        app:layout_constraintLeft_toLeftOf="@+id/findeserv"
+        android:layout_marginLeft="-3dp" />
 
     <Button
-        android:text="@string/connect_to_serv"
+        android:id="@+id/findeserv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/findeserv"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/connect_to_serv"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.501" />
+        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.499" />
 
     <Button
         android:id="@+id/back"
