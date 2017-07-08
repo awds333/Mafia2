@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
@@ -216,15 +217,29 @@ public class ServerSerchActivity extends Activity {
                 Socket socket = new Socket();
                 DataOutputStream out = null;
                 DataInputStream reader = null;
-                try {
-                    socket.connect(new InetSocketAddress(ipTail + ip, PortsNumber.SERVER_GUEST_PORT), 4000);
-                    while (socket.isConnected() == false) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                for (int i = 0; i < 30; i++) {
+                    try {
+                        socket.connect(new InetSocketAddress(ipTail + ip, PortsNumber.SERVER_GUEST_PORT), 500);
+                        while (socket.isConnected() == false) {
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
                     }
+                    Log.d("awdsawds","ip: "+ip+" tyme: "+i);
+                    if (socket.isConnected())
+                        break;
+                    else try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
                     reader = new DataInputStream(socket.getInputStream());
                     out = new DataOutputStream(socket.getOutputStream());
                     JSONObject outmessage = new JSONObject();
@@ -303,15 +318,32 @@ public class ServerSerchActivity extends Activity {
                                     DataOutputStream out = null;
                                     DataInputStream reader = null;
                                     int port = -1;
-                                    try {
-                                        socket.connect(new InetSocketAddress(ipTail + connectionIp, PortsNumber.SERVER_GUEST_PORT), 4000);
-                                        while (socket.isConnected() == false) {
-                                            try {
-                                                Thread.sleep(100);
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
+                                    int ipCon = connectionIp;
+                                    for (int i = 0; i < 30; i++) {
+                                        try {
+                                            socket.connect(new InetSocketAddress(ipTail + ipCon, PortsNumber.SERVER_GUEST_PORT), 500);
+                                            while (socket.isConnected() == false) {
+                                                try {
+                                                    Thread.sleep(100);
+                                                } catch (InterruptedException e) {
+                                                    e.printStackTrace();
+                                                }
                                             }
+                                        } catch (IOException e1) {
+                                            e1.printStackTrace();
                                         }
+                                        Log.d("awdsawds","connect ip: "+ipCon+" tyme: "+i);
+                                        if (socket.isConnected()) {
+                                            Log.d("awdsawds","connect ip: "+ipCon+"sucsessssssssss tyme: "+i);
+                                            break;
+                                        }
+                                        else try {
+                                            Thread.sleep(300);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    try {
                                         reader = new DataInputStream(socket.getInputStream());
                                         out = new DataOutputStream(socket.getOutputStream());
                                         JSONObject outmessage = new JSONObject();

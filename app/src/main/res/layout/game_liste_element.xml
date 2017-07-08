@@ -11,6 +11,7 @@
         android:id="@+id/image"
         android:layout_width="85dp"
         android:layout_height="85dp"
+        android:src="@drawable/selfless"
         app:srcCompat="@drawable/selfless" />
 
     <LinearLayout

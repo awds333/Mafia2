@@ -264,9 +264,10 @@ public class SocketEngine extends Observable {
             @Override
             public void run() {
                 closeServerSockets();
-                for (int i = 0; i < channels.size(); i++) {
-                    if (channels.get(i) != null)
-                        channels.get(i).close();
+                int size = channels.size();
+                for (int i = 0; i < size; i++) {
+                    channels.get(0).close();
+                    channels.remove(0);
                 }
                 channels = null;
                 socketEngine = null;
