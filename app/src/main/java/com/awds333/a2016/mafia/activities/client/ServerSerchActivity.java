@@ -219,6 +219,7 @@ public class ServerSerchActivity extends Activity {
                 DataInputStream reader = null;
                 for (int i = 0; i < 30; i++) {
                     try {
+                        socket = new Socket();
                         socket.connect(new InetSocketAddress(ipTail + ip, PortsNumber.SERVER_GUEST_PORT), 500);
                         while (socket.isConnected() == false) {
                             try {
@@ -260,6 +261,7 @@ public class ServerSerchActivity extends Activity {
                     adViewHandler.sendMessage(msg);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Log.d("awdsawds","здесь ошибка!");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } finally {

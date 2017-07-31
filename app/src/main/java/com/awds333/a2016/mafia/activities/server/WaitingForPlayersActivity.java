@@ -111,9 +111,9 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
 
     @Override
     protected void onDestroy() {
+        engine.deleteObservers();
         if (next == false) {
             engine.stopPing();
-            engine.deleteObserver(this);
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
