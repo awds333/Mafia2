@@ -48,7 +48,7 @@ public class PlayActivity extends Activity implements Observer {
     int myId, myRole;
     LinearLayout roleContainer;
     Timer timer;
-//u
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -231,8 +231,10 @@ public class ServerSerchActivity extends Activity {
                         e1.printStackTrace();
                     }
                     Log.d("awdsawds","ip: "+ip+" tyme: "+i);
-                    if (socket.isConnected())
+                    if (socket.isConnected()) {
+                        Log.d("awdsawds", "ip: " + ip + " tyme: " + i + " sucses");
                         break;
+                    }
                     else try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
@@ -321,6 +323,7 @@ public class ServerSerchActivity extends Activity {
                                     int ipCon = connectionIp;
                                     for (int i = 0; i < 30; i++) {
                                         try {
+                                            socket = new Socket();
                                             socket.connect(new InetSocketAddress(ipTail + ipCon, PortsNumber.SERVER_GUEST_PORT), 500);
                                             while (socket.isConnected() == false) {
                                                 try {

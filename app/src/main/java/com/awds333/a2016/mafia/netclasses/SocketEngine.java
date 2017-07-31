@@ -18,7 +18,7 @@ public class SocketEngine extends Observable {
     private ArrayList<PlayerChannel> channels;
     private ArrayList<ServerSocket> serverSockets;
     private int mport, channelId, killId;
-    private String mmessage, password;
+    private String password;
     private boolean pinging;
     private HashMap<Integer, byte[]> content;
 
