@@ -8,17 +8,16 @@ import java.net.UnknownHostException;
 
 public class IpPinger {
     private Thread[] threads;
-    private int myIpc;
     private String ip;
     private Handler mhandler;
-    private int ping;
-    private int count;
+    private int ping, count, myIpc, pingRepits;
     private boolean run;
 
-    public IpPinger(int treadCount, int[] myIp, Handler handler, int pingTyme) {
+    public IpPinger(int treadCount, int[] myIp, Handler handler, int pingTyme, int pingRepit) {
         myIpc = myIp[3];
         ip = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
         this.mhandler = handler;
+        pingRepits = pingRepit;
         ping = pingTyme;
         count = 1;
         run = true;
@@ -35,9 +34,11 @@ public class IpPinger {
                     if (lcount <= 255) {
                         try {
                             InetAddress address = InetAddress.getByName(ip + lcount);
-                            if (address.isReachable(ping)) {
-                                if(run)mhandler.sendEmptyMessage(lcount);
-                            }
+                            for (int i = 0; i < pingRepits; i++)
+                                if (address.isReachable(ping)) {
+                                    if (run) mhandler.sendEmptyMessage(lcount);
+                                    break;
+                                }
                         } catch (UnknownHostException e) {
                             e.printStackTrace();
                         } catch (IOException e) {

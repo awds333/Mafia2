@@ -113,7 +113,8 @@ public class SocketEngine extends Observable {
                                 }
                             }
                             Log.d("awdsawds", channel.getId() + " died");
-                            killChannelById(channel.getId());
+                            if (channel.isActive())
+                                killChannelById(channel.getId());
                         }
                     });
                     PlayerChannel channeltrans = new PlayerChannel(thread1, socket, channelId, mport, password);

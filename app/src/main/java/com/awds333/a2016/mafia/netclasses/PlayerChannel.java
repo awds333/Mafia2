@@ -35,6 +35,10 @@ public class PlayerChannel {
         return lock;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
     public PlayerChannel(Thread thread, final Socket socket, int id, int port, String pass) {
         this.thread = thread;
         this.socket = socket;

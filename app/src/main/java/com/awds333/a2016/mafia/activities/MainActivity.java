@@ -146,23 +146,25 @@ public class MainActivity extends Activity {
             }
             createDirectory();
             image = BitmapFactory.decodeFile(directory.getPath() + "/imageplayer.jpeg");
-            double height = image.getHeight();
-            double width = image.getWidth();
-            double ot = height / width;
-            Log.d("awdsawds", image.getWidth() + " " + image.getHeight());
-            if (ot > 1.0)
-                image = Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getWidth());
-            else
-                image = Bitmap.createBitmap(image, 0, 0, image.getHeight(), image.getHeight());
-            Log.d("awdsawds", ot + "");
-            Log.d("awdsawds", image.getHeight() + " " + image.getWidth());
-            imBt.setLayoutParams(new LinearLayout.LayoutParams(360, 360));
-            Log.d("awdsawds", imBt.getHeight() + " " + imBt.getWidth());
-            BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), image);
-            imBt.setImageBitmap(null);
-            imBt.setBackground(bitmapDrawable);
-            image = null;
-            hasimage = true;
+            if( image!=null) {
+                double height = image.getHeight();
+                double width = image.getWidth();
+                double ot = height / width;
+                Log.d("awdsawds", image.getWidth() + " " + image.getHeight());
+                if (ot > 1.0)
+                    image = Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getWidth());
+                else
+                    image = Bitmap.createBitmap(image, 0, 0, image.getHeight(), image.getHeight());
+                Log.d("awdsawds", ot + "");
+                Log.d("awdsawds", image.getHeight() + " " + image.getWidth());
+                imBt.setLayoutParams(new LinearLayout.LayoutParams(360, 360));
+                Log.d("awdsawds", imBt.getHeight() + " " + imBt.getWidth());
+                BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), image);
+                imBt.setImageBitmap(null);
+                imBt.setBackground(bitmapDrawable);
+                image = null;
+                hasimage = true;
+            }
         }
     }
 

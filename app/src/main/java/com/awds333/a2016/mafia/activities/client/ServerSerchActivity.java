@@ -155,7 +155,7 @@ public class ServerSerchActivity extends Activity {
                         myIp[count] = Integer.parseInt(ipb.toString());
                     }
                     ipTail = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
-                    pinger = new IpPinger(7, myIp, handler, 500);
+                    pinger = new IpPinger(7, myIp, handler, 500,2);
                     floatingButton.setClickable(false);
                     floatingButton.setVisibility(View.INVISIBLE);
                     scaning.setVisibility(View.VISIBLE);
@@ -500,7 +500,7 @@ public class ServerSerchActivity extends Activity {
             myIp[count] = Integer.parseInt(ipb.toString());
         }
         ipTail = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
-        pinger = new IpPinger(7, myIp, handler, 500);
+        pinger = new IpPinger(7, myIp, handler, 500,2);
         if (getIntent().getBooleanExtra("image", false)) {
             Thread t = new Thread(new Runnable() {
                 @Override
