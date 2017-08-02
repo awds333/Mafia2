@@ -155,7 +155,7 @@ public class ServerSerchActivity extends Activity {
                         myIp[count] = Integer.parseInt(ipb.toString());
                     }
                     ipTail = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
-                    pinger = new IpPinger(7, myIp, handler, 500,2);
+                    pinger = new IpPinger(7, myIp, handler, 500, 2);
                     floatingButton.setClickable(false);
                     floatingButton.setVisibility(View.INVISIBLE);
                     scaning.setVisibility(View.VISIBLE);
@@ -214,75 +214,80 @@ public class ServerSerchActivity extends Activity {
             public void run() {
                 int ip = liveIp.get(0);
                 liveIp.remove(0);
-                Socket socket = new Socket();
-                DataOutputStream out = null;
-                DataInputStream reader = null;
-                for (int i = 0; i < 30; i++) {
+                boolean success = false;
+                for (int q = 0; q < 3; q++) {
+                    Socket socket = new Socket();
+                    DataOutputStream out = null;
+                    DataInputStream reader = null;
+                    Log.d("awdsawds", "ip: " + ip + " start");
+                    for (int i = 0; i < 10; i++) {
+                        try {
+                            socket = new Socket();
+                            socket.connect(new InetSocketAddress(ipTail + ip, PortsNumber.SERVER_GUEST_PORT), 500);
+                            while (socket.isConnected() == false) {
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        if (socket.isConnected()) {
+                            Log.d("awdsawds", "ip: " + ip + " tyme: " + i + " sucses");
+                            break;
+                        } else try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     try {
-                        socket = new Socket();
-                        socket.connect(new InetSocketAddress(ipTail + ip, PortsNumber.SERVER_GUEST_PORT), 500);
-                        while (socket.isConnected() == false) {
+                        reader = new DataInputStream(socket.getInputStream());
+                        out = new DataOutputStream(socket.getOutputStream());
+                        JSONObject outmessage = new JSONObject();
+                        outmessage.put("contyme", 1);
+                        println(out, outmessage.toString());
+                        JSONObject serverInfo = new JSONObject(getLine(reader));
+                        int people = serverInfo.getInt("peoplecount");
+                        String servername = serverInfo.getString("servername");
+                        int lock = 0;
+                        if (serverInfo.getBoolean("lock"))
+                            lock = 1;
+                        else
+                            lock = 0;
+                        Message msg = adViewHandler.obtainMessage(ip, people, lock, servername);
+                        adViewHandler.obtainMessage();
+                        adViewHandler.sendMessage(msg);
+                        success = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.d("awdsawds", "здесь ошибка! " + ip);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (out != null)
                             try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
+                                out.close();
+                            } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                        }
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
+                        if (reader != null)
+                            try {
+                                reader.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        if (socket != null)
+                            try {
+                                socket.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                     }
-                    Log.d("awdsawds","ip: "+ip+" tyme: "+i);
-                    if (socket.isConnected()) {
-                        Log.d("awdsawds", "ip: " + ip + " tyme: " + i + " sucses");
+                    if (success)
                         break;
-                    }
-                    else try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                try {
-                    reader = new DataInputStream(socket.getInputStream());
-                    out = new DataOutputStream(socket.getOutputStream());
-                    JSONObject outmessage = new JSONObject();
-                    outmessage.put("contyme", 1);
-                    println(out, outmessage.toString());
-                    JSONObject serverInfo = new JSONObject(getLine(reader));
-                    int people = serverInfo.getInt("peoplecount");
-                    String servername = serverInfo.getString("servername");
-                    int lock = 0;
-                    if (serverInfo.getBoolean("lock"))
-                        lock = 1;
-                    else
-                        lock = 0;
-                    Message msg = adViewHandler.obtainMessage(ip, people, lock, servername);
-                    adViewHandler.obtainMessage();
-                    adViewHandler.sendMessage(msg);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.d("awdsawds","здесь ошибка!");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (out != null)
-                        try {
-                            out.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    if (reader != null)
-                        try {
-                            reader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    if (socket != null)
-                        try {
-                            socket.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                 }
             }
         };
@@ -318,72 +323,76 @@ public class ServerSerchActivity extends Activity {
                             Thread thread = new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Socket socket = new Socket();
-                                    DataOutputStream out = null;
-                                    DataInputStream reader = null;
-                                    int port = -1;
                                     int ipCon = connectionIp;
-                                    for (int i = 0; i < 30; i++) {
+                                    Socket socket;
+                                    int port = -1;
+                                    for(int q = 0;q<3;q++) {
+                                        socket = new Socket();
+                                        DataOutputStream out = null;
+                                        DataInputStream reader = null;
+                                        for (int i = 0; i < 10; i++) {
+                                            try {
+                                                socket = new Socket();
+                                                socket.connect(new InetSocketAddress(ipTail + ipCon, PortsNumber.SERVER_GUEST_PORT), 500);
+                                                while (socket.isConnected() == false) {
+                                                    try {
+                                                        Thread.sleep(100);
+                                                    } catch (InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                            } catch (IOException e1) {
+                                                e1.printStackTrace();
+                                            }
+                                            Log.d("awdsawds", "connect ip: " + ipCon + " tyme: " + i);
+                                            if (socket.isConnected()) {
+                                                Log.d("awdsawds", "connect ip: " + ipCon + "sucsessssssssss tyme: " + i);
+                                                break;
+                                            } else try {
+                                                Thread.sleep(300);
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
                                         try {
-                                            socket = new Socket();
-                                            socket.connect(new InetSocketAddress(ipTail + ipCon, PortsNumber.SERVER_GUEST_PORT), 500);
-                                            while (socket.isConnected() == false) {
+                                            reader = new DataInputStream(socket.getInputStream());
+                                            out = new DataOutputStream(socket.getOutputStream());
+                                            JSONObject outmessage = new JSONObject();
+                                            try {
+                                                outmessage.put("contyme", 2);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            println(out, outmessage.toString());
+                                            String sport = getLine(reader);
+                                            port = Integer.parseInt(sport);
+                                            out.close();
+                                            reader.close();
+                                            socket.close();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        } finally {
+                                            if (out != null)
                                                 try {
-                                                    Thread.sleep(100);
-                                                } catch (InterruptedException e) {
+                                                    out.close();
+                                                } catch (IOException e) {
                                                     e.printStackTrace();
                                                 }
-                                            }
-                                        } catch (IOException e1) {
-                                            e1.printStackTrace();
+                                            if (reader != null)
+                                                try {
+                                                    reader.close();
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            if (socket != null)
+                                                try {
+                                                    socket.close();
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
                                         }
-                                        Log.d("awdsawds","connect ip: "+ipCon+" tyme: "+i);
-                                        if (socket.isConnected()) {
-                                            Log.d("awdsawds","connect ip: "+ipCon+"sucsessssssssss tyme: "+i);
+                                        if(port>=0)
                                             break;
-                                        }
-                                        else try {
-                                            Thread.sleep(300);
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                    try {
-                                        reader = new DataInputStream(socket.getInputStream());
-                                        out = new DataOutputStream(socket.getOutputStream());
-                                        JSONObject outmessage = new JSONObject();
-                                        try {
-                                            outmessage.put("contyme", 2);
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
-                                        }
-                                        println(out, outmessage.toString());
-                                        String sport = getLine(reader);
-                                        port = Integer.parseInt(sport);
-                                        out.close();
-                                        reader.close();
-                                        socket.close();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    } finally {
-                                        if (out != null)
-                                            try {
-                                                out.close();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-                                        if (reader != null)
-                                            try {
-                                                reader.close();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-                                        if (socket != null)
-                                            try {
-                                                socket.close();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
                                     }
                                     if (port == -2) {
                                         connectingRezult.sendEmptyMessage(-2);
@@ -500,7 +509,7 @@ public class ServerSerchActivity extends Activity {
             myIp[count] = Integer.parseInt(ipb.toString());
         }
         ipTail = myIp[0] + "." + myIp[1] + "." + myIp[2] + ".";
-        pinger = new IpPinger(7, myIp, handler, 500,2);
+        pinger = new IpPinger(7, myIp, handler, 500, 2);
         if (getIntent().getBooleanExtra("image", false)) {
             Thread t = new Thread(new Runnable() {
                 @Override
