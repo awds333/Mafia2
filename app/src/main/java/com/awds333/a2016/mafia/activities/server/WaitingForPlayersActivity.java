@@ -415,25 +415,28 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                             @Override
                             protected Bitmap doInBackground(Integer... params) {
                                 byte[] imageBytes = engine.getContentById(params[0]);
-                                id = params[0];
-                                idImage.put(id, imageBytes);
-                                Bitmap bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-                                JSONObject object1 = new JSONObject();
-                                try {
-                                    object1.put("type", "image");
-                                    object1.put("id", id);
-                                    engine.sendMessage(object1.toString(), id);
-                                    engine.sendByteMessage(imageBytes, id);
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                if (imageBytes != null) {
+                                    id = params[0];
+                                    idImage.put(id, imageBytes);
+                                    Bitmap bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                                    JSONObject object1 = new JSONObject();
+                                    try {
+                                        object1.put("type", "image");
+                                        object1.put("id", id);
+                                        engine.sendMessage(object1.toString(), id);
+                                        engine.sendByteMessage(imageBytes, id);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    return bmp.copy(Bitmap.Config.ARGB_8888, true);
                                 }
-                                return bmp.copy(Bitmap.Config.ARGB_8888, true);
+                                return null;
                             }
 
                             @Override
                             protected void onPostExecute(Bitmap bitmap) {
                                 View view1 = conteiner.findViewById(id);
-                                if (view1 != null) {
+                                if (view1 != null&&bitmap!=null) {
                                     ((ImageView) view1.findViewById(R.id.image)).setImageBitmap(bitmap);
                                 }
                             }

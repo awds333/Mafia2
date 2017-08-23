@@ -35,7 +35,7 @@ public class SocketEngine extends Observable {
         return socketEngine;
     }
 
-    public void addChannel(int port, String pass) {
+    public synchronized void addChannel(int port, String pass) {
         this.mport = port;
         password = pass;
         Thread thread = new Thread(new Runnable() {
