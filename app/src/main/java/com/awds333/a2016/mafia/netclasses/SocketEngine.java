@@ -130,7 +130,7 @@ public class SocketEngine extends Observable {
         thread.start();
     }
 
-    public byte[] getContentById(int id) {
+    public synchronized byte[] getContentById(int id) {
         byte answer[] = content.get(id);
         content.remove(id);
         return answer;

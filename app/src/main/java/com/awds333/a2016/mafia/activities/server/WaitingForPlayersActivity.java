@@ -111,7 +111,8 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
 
     @Override
     protected void onDestroy() {
-        engine.deleteObservers();
+        if (engine != null)
+            engine.deleteObserver(this);
         if (next == false) {
             engine.stopPing();
             Thread thread = new Thread(new Runnable() {
@@ -161,9 +162,9 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                     intent.putExtra("detective", rolePick.isDetective());
                     intent.putExtra("name", getIntent().getStringExtra("name"));
                     Iterator<Integer> iterator = idImage.keySet().iterator();
-                    while (iterator.hasNext()){
+                    while (iterator.hasNext()) {
                         int id = iterator.next();
-                        intent.putExtra("image"+id,idImage.get(id));
+                        intent.putExtra("image" + id, idImage.get(id));
                     }
                     wait = false;
                     try {
@@ -229,7 +230,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 @Override
                 protected void onPostExecute(Bitmap bitmap) {
                     View view1 = conteiner.findViewById(0);
-                    if (view1 != null&& bitmap!=null) {
+                    if (view1 != null && bitmap != null) {
                         ((ImageView) view1.findViewById(R.id.image)).setImageBitmap(bitmap);
                     }
                 }
@@ -254,7 +255,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                 try {
                     guestSocket = new ServerSocket(PortsNumber.SERVER_GUEST_PORT);
                     socket = guestSocket.accept();
-                    Log.d("awdsawds",socket.getInetAddress().getAddress().toString());
+                    Log.d("awdsawds", socket.getInetAddress().getAddress().toString());
                     reader = new DataInputStream(socket.getInputStream());
                     out = new DataOutputStream(socket.getOutputStream());
 
@@ -369,8 +370,6 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                         rolePick.newPlayer();
                         peoplecount++;
                         Log.d("awdsawds", peoplecount + "");
-                        if (!engine.isPinging()) ;
-//                            engine.startPing();
                     } else if (type.equals("message")) {
                         JSONObject message = new JSONObject(object.getString("message"));
                         if (message.getString("type").equals("getPlayList")) {
@@ -394,7 +393,7 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                             Iterator<Integer> idsimg = idImage.keySet().iterator();
                             while (idsimg.hasNext()) {
                                 int id = idsimg.next();
-                                engine.sendMessageById(id+"",object.getInt("id"));
+                                engine.sendMessageById(id + "", object.getInt("id"));
                                 engine.sendByteMessageById(idImage.get(id), object.getInt("id"));
                             }
                         }
@@ -421,10 +420,10 @@ public class WaitingForPlayersActivity extends Activity implements Observer {
                                 Bitmap bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                                 JSONObject object1 = new JSONObject();
                                 try {
-                                    object1.put("type","image");
-                                    object1.put("id",id);
-                                    engine.sendMessage(object1.toString(),id);
-                                    engine.sendByteMessage(imageBytes,id);
+                                    object1.put("type", "image");
+                                    object1.put("id", id);
+                                    engine.sendMessage(object1.toString(), id);
+                                    engine.sendByteMessage(imageBytes, id);
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }

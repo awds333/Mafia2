@@ -391,7 +391,7 @@ public class ServerSerchActivity extends Activity {
                                                     e.printStackTrace();
                                                 }
                                         }
-                                        if(port>=0)
+                                        if(port>=0||port==-2)
                                             break;
                                     }
                                     if (port == -2) {
