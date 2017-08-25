@@ -70,6 +70,7 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                     start.sendEmptyMessage(0);
                 else {
                     if (player.getSocket().isConnected()) {
+                        idName = new HashMap<Integer, String>();
                         JSONObject object = new JSONObject();
                         try {
                             object.put("type", "getPlayList");
@@ -88,7 +89,6 @@ public class WaitingForGameStartActivity extends AppCompatActivity {
                             JSONArray array = plList.getJSONArray("PlayList");
                             mId = plList.getInt("id");
                             mName = plList.getString("name");
-                            idName = new HashMap<Integer, String>();
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject ob = (JSONObject) array.get(i);
                                 idName.put(ob.getInt("id"), ob.getString("name"));
